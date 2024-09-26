@@ -38,7 +38,7 @@ class ProductListViewModel(private val repository: ProductRepository): ViewModel
         }
     }
 
-    fun searchHero(){
+    fun searchProduct(){
         _state.value = UIState(isLoading = true)
         viewModelScope.launch {
             val result = repository.searchProduct(_name.value)
@@ -48,7 +48,6 @@ class ProductListViewModel(private val repository: ProductRepository): ViewModel
                 _state.value = UIState(error = result.message?: "An error occurred")
             }
         }
-
     }
 
     fun toggleFavorite(product: Product){
@@ -63,6 +62,44 @@ class ProductListViewModel(private val repository: ProductRepository): ViewModel
             _state.value = UIState(data = emptyList())
             _state.value = UIState(data = heroes)
         }
+    }
 
+    fun filterProductsByName() {
+        _state.value = UIState(isLoading = true)
+        viewModelScope.launch {
+            val result = repository.getAllProducts()
+            if (result is Resource.Success) {
+                val sortedProducts = result.data?.sortedBy { it.name }
+                _state.value = UIState(data = sortedProducts)
+            } else {
+                _state.value = UIState(error = result.message ?: "An error occurred")
+            }
+        }
+    }
+
+    fun filterProductsByStock() {
+        _state.value = UIState(isLoading = true)
+        viewModelScope.launch {
+            val result = repository.getAllProducts()
+            if (result is Resource.Success) {
+                val sortedProducts = result.data?.sortedBy { it.stock }
+                _state.value = UIState(data = sortedProducts)
+            } else {
+                _state.value = UIState(error = result.message ?: "An error occurred")
+            }
+        }
+    }
+
+    fun filterProductsByFavorites() {
+        _state.value = UIState(isLoading = true)
+        viewModelScope.launch {
+            val result = repository.getAllProducts()
+            if (result is Resource.Success) {
+                val favoriteProducts = result.data?.filter { it.isFavorite }
+                _state.value = UIState(data = favoriteProducts)
+            } else {
+                _state.value = UIState(error = result.message ?: "An error occurred")
+            }
+        }
     }
 }
