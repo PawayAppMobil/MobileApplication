@@ -34,17 +34,17 @@ class MainActivity : ComponentActivity() {
         setContent {
             MobileApplicationTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    // Wrap MainScreen in a Box to apply padding
                     Box(modifier = Modifier.padding(innerPadding)) {
                         MainScreen(
                             viewModel = productListViewModel
-                            // No modifier parameter
                         )
                     }
                 }
             }
         }
     }
+
+
 }
 
 

@@ -2,6 +2,7 @@ package com.paway.mobileapplication.inventory.data.repository
 
 import com.paway.mobileapplication.inventory.common.Resource
 import com.paway.mobileapplication.inventory.data.remote.ProductApi
+import com.paway.mobileapplication.inventory.data.remote.ProductService
 import com.paway.mobileapplication.inventory.data.remote.toProduct
 import com.paway.mobileapplication.inventory.domain.Product
 import com.paway.mobileapplication.inventory.domain.repository.ProductRepository
@@ -11,7 +12,7 @@ import retrofit2.HttpException
 import java.io.IOException
 
 class ProductRepositoryImpl(
-    private val api: ProductApi
+    private val api: ProductService
 ) : ProductRepository {
 
     override fun searchProducts(name: String): Flow<Resource<List<Product>>> = flow {

@@ -105,7 +105,6 @@ fun SearchBar(
                 Icon(Icons.Default.List, contentDescription = "Filter")
             }
         },
-        // Remove the colors parameter to use default colors
         singleLine = true
     )
 }
