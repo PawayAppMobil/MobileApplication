@@ -29,7 +29,6 @@ class ProductDetailViewModel: ViewModel() {
 
     fun saveChanges(onSave: () -> Unit) {
         viewModelScope.launch {
-            // Aquí puedes realizar la lógica de guardado en base de datos
             onSave()
         }
     }

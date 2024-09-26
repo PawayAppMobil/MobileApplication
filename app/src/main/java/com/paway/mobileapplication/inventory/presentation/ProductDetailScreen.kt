@@ -40,12 +40,11 @@ fun ProductDetailScreen(
                         .fillMaxWidth()
                         .padding(8.dp),
                     textAlign = TextAlign.Center,
-                    color = Color.White.copy(alpha = 0.8f) // Color del texto más claro
+                    color = Color.White.copy(alpha = 0.8f)
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Stock Actual
                 EditableCard(
                     title = "Stock Actual:",
                     value = product.stock.toString(),
@@ -54,10 +53,10 @@ fun ProductDetailScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Proveedor
+
                 EditableCard(
                     title = "Proveedor:",
-                    value = "Desconocido", // Esto lo puedes reemplazar por un campo real
+                    value = "Desconocido",
                     onValueChanged = {}
                 )
 
@@ -81,7 +80,7 @@ fun ProductDetailScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Botones de Guardar y Cancelar
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceAround
@@ -109,7 +108,7 @@ fun EditableCard(
             .fillMaxWidth()
             .padding(8.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xff3f3f3f) // Color del contenedor modificado
+            containerColor = Color(0xff3f3f3f)
         )
     ) {
         Column(

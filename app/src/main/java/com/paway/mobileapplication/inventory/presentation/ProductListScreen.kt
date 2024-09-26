@@ -27,12 +27,12 @@ fun ProductItem(
     product: Product,
     backgroundColor: Color,
     onFavoritePressed: () -> Unit,
-    onProductClicked: () -> Unit // Añadimos esta función
+    onProductClicked: () -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onProductClicked() }, // Navegación al hacer clic en el contenedor completo
+            .clickable { onProductClicked() },
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor
         ),
@@ -66,7 +66,7 @@ fun ProductItem(
 @Composable
 fun ProductListScreen(
     viewModel: ProductListViewModel,
-    onProductClicked: (Product) -> Unit // Parámetro para la navegación
+    onProductClicked: (Product) -> Unit
 ) {
     val state = viewModel.state.value
     val name = viewModel.name.value
@@ -119,9 +119,8 @@ fun ProductListScreen(
                     itemsIndexed(products) { index, product ->
                         val backgroundColor = if (index % 2 == 0) Color(0xfffce199) else Color(0xff7faaaa)
                         ProductItem(product, backgroundColor, onFavoritePressed = {
-                            // Lógica para manejar el clic en la estrella
                         }, onProductClicked = {
-                            onProductClicked(product) // Llamamos a la función de navegación
+                            onProductClicked(product)
                         })
                     }
                 }
