@@ -55,10 +55,10 @@ fun MainActivitySelectorContent() {
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Button(onClick = { setSelectedActivity(1) }) {
-            Text("Main Activity 1")
+            Text("Home")
         }
         Button(onClick = { setSelectedActivity(2) }) {
-            Text("Main Activity 2")
+            Text("Inventario")
         }
 
         when (selectedActivity) {
