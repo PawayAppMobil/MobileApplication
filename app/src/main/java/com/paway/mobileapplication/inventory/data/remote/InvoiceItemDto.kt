@@ -1,6 +1,7 @@
 package com.paway.mobileapplication.inventory.data.remote
 
 import com.google.gson.annotations.SerializedName
+import com.paway.mobileapplication.inventory.domain.InvoiceItem
 
 data class InvoiceItemDto(
     @SerializedName("id") val id: String,
@@ -9,3 +10,4 @@ data class InvoiceItemDto(
     @SerializedName("unitPrice") val unitPrice: Int,
     @SerializedName("productId") val productId: String
 )
+fun InvoiceItemDto.toItem()= InvoiceItem( id,quantity)

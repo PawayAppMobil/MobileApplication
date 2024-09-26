@@ -13,4 +13,5 @@ data class InvoiceDto(
     @SerializedName("customerId") val customerId: String,
     @SerializedName("dueDate") val dueDate: String
 )
-fun InvoiceDto.toInvoice()= Invoice(id, amount, status)
+
+fun InvoiceDto.toInvoice()= Invoice(id, amount, status, items = items.map { it.toItem() })
