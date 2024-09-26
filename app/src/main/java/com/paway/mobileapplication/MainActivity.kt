@@ -4,24 +4,38 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import com.paway.mobileapplication.inventory.presentation.product_list.ProductListViewModel // Ensure this is the correct import
 import com.paway.mobileapplication.ui.theme.MobileApplicationTheme
+import com.paway.mobileapplication.data.remote.RetrofitInstance
+import com.paway.mobileapplication.inventory.data.repository.ProductRepositoryImpl
+import com.paway.mobileapplication.inventory.domain.use_case.SearchProductsUseCase
+import com.paway.mobileapplication.inventory.presentation.product_list.ProductListScreen
 
 class MainActivity : ComponentActivity() {
+    private lateinit var searchProductsUseCase: SearchProductsUseCase
+    private val productListViewModel: ProductListViewModel by viewModels {
+        ProductListViewModel.provideFactory(searchProductsUseCase)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Inicializar Retrofit y crear la instancia de SearchProductsUseCase
+        val apiService = RetrofitInstance.api
+        val repository = ProductRepositoryImpl(apiService)
+        searchProductsUseCase = SearchProductsUseCase(repository)
+        
         enableEdgeToEdge()
         setContent {
             MobileApplicationTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
+                    ProductListScreen(
+                        viewModel = productListViewModel,
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
@@ -30,18 +44,4 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    MobileApplicationTheme {
-        Greeting("Android")
-    }
-}

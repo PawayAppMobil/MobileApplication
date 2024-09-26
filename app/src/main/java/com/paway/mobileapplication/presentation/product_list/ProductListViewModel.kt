@@ -1,12 +1,14 @@
-package com.paway.mobileapplication.inventory.presentation.product_list
+package com.paway.mobileapplication.presentation.product_list
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+
 import com.paway.mobileapplication.inventory.common.Resource
 import com.paway.mobileapplication.inventory.domain.use_case.SearchProductsUseCase
+import com.paway.mobileapplication.inventory.presentation.product_list.ProductListState
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 

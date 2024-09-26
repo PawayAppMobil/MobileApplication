@@ -12,12 +12,13 @@ import com.paway.mobileapplication.inventory.domain.Product
 
 @Composable
 fun ProductListScreen(
-    viewModel: ProductListViewModel
+    viewModel: ProductListViewModel,
+    modifier: Modifier = Modifier
 ) {
     val state = viewModel.state.value
     val searchQuery = viewModel.searchQuery.value
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = modifier.fillMaxSize()) {
         OutlinedTextField(
             value = searchQuery,
             onValueChange = { viewModel.onSearchQueryChange(it) },
