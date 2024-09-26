@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.paway.mobileapplication.inventory.common.Resource
+import com.paway.mobileapplication.inventory.domain.Product
 import com.paway.mobileapplication.inventory.domain.use_case.SearchProductsUseCase
 import kotlinx.coroutines.flow.*
 
@@ -30,7 +31,12 @@ class ProductListViewModel(
         searchProductsUseCase(query).onEach { result ->
             when (result) {
                 is Resource.Success -> {
-                    _state.value = ProductListState(products = result.data ?: emptyList())
+                    // Supongamos que result.data es una lista de productos sin 'isFavorite'
+                    val products = result.data?.map { product ->
+                        product.copy(isFavorite = false) // Asegúrate de establecer un valor por defecto
+                    } ?: emptyList()
+
+                    _state.value = ProductListState(products = products)
                 }
                 is Resource.Error -> {
                     _state.value = ProductListState(
@@ -43,6 +49,20 @@ class ProductListViewModel(
             }
         }.launchIn(viewModelScope)
     }
+
+
+
+    fun toggleFavorite(product: Product) {
+        val updatedProducts = _state.value.products.map {
+            if (it.id == product.id) {
+                it.copy(isFavorite = !it.isFavorite)
+            } else {
+                it
+            }
+        }
+        _state.value = _state.value.copy(products = updatedProducts)
+    }
+
 
     companion object {
         fun provideFactory(

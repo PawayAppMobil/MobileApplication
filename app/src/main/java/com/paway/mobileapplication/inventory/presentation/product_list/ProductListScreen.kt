@@ -6,7 +6,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -77,7 +84,7 @@ fun InventoryScreen(viewModel: ProductListViewModel) {
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
             ) {
                 items(state.products) { product ->
-                    ProductItem(product)
+                    ProductItem(product, viewModel)
                     Spacer(modifier = Modifier.height(8.dp))
                 }
             }
@@ -100,9 +107,9 @@ fun SearchBar(
             .clip(RoundedCornerShape(8.dp)),
         placeholder = { Text("Buscar...") },
         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-        trailingIcon = { 
+        trailingIcon = {
             IconButton(onClick = { /* TODO: Implement filter action */ }) {
-                Icon(Icons.Default.List, contentDescription = "Filter")
+                Icon(Icons.AutoMirrored.Filled.List, contentDescription = "Filter")
             }
         },
         singleLine = true
@@ -110,7 +117,7 @@ fun SearchBar(
 }
 
 @Composable
-fun ProductItem(product: Product) {
+fun ProductItem(product: Product, viewModel: ProductListViewModel) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -133,8 +140,13 @@ fun ProductItem(product: Product) {
                 )
                 Text(text = "Stock actual: ${product.stock} unidades")
             }
-            IconButton(onClick = { /* TODO: Implement favorite action */ }) {
-                Icon(Icons.Default.Star, contentDescription = "Favorite")
+            IconButton(onClick = { viewModel.toggleFavorite(product) }) {
+                Icon(
+                    imageVector = if (product.isFavorite) Icons.Default.Star else Icons.Outlined.Star,
+                    contentDescription = if (product.isFavorite) "Remove from favorites" else "Add to favorites",
+                    tint = if (product.isFavorite) Color.Black else Color.Gray
+                )
+
             }
         }
     }
