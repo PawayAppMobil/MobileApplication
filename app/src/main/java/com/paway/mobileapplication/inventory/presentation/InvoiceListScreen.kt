@@ -31,10 +31,38 @@ fun InvoiceListScreen(viewModel: InvoiceListViewModel, modifier: Modifier = Modi
 
     Scaffold(modifier = modifier) { paddingValues: PaddingValues ->
         Column(modifier = Modifier.padding(paddingValues)) {
-            // Sección de facturas por pagar
+            // Sección de saldo total
             Text(
                 modifier = Modifier.padding(4.dp),
-                text = "Facturas por Pagar",
+                text = "Saldo Total",
+                fontSize = 24.sp,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                modifier = Modifier.padding(4.dp),
+                text = "S/ 10,000.00",
+                fontSize = 24.sp,
+                color = MaterialTheme.colorScheme.primary
+            )
+
+            // Sección de artículos críticos
+            Text(
+                modifier = Modifier.padding(4.dp),
+                text = "Artículos Críticos",
+                fontSize = 24.sp,
+                color = MaterialTheme.colorScheme.error
+            )
+            Text(
+                modifier = Modifier.padding(4.dp),
+                text = "3",
+                fontSize = 24.sp,
+                color = MaterialTheme.colorScheme.error
+            )
+
+            // Sección de facturas por cobrar
+            Text(
+                modifier = Modifier.padding(4.dp),
+                text = "Facturas por Cobrar",
                 fontSize = 24.sp,
                 color = MaterialTheme.colorScheme.primary
             )
@@ -68,12 +96,12 @@ fun InvoiceListScreen(viewModel: InvoiceListViewModel, modifier: Modifier = Modi
                     // Mostrar la suma de las cantidades y el monto total
                     Text(
                         modifier = Modifier.padding(4.dp),
-                        text = "Total Quantity for pagar: $totalQuantityPagar",
+                        text = "Total Quantity for cobrar: $totalQuantityPagar",
                         fontSize = 20.sp
                     )
                     Text(
                         modifier = Modifier.padding(4.dp),
-                        text = "Total Amount for pagar: $totalAmountPagar",
+                        text = "Total Amount for cobrar: $totalAmountPagar",
                         fontSize = 20.sp
                     )
                 }
@@ -82,10 +110,10 @@ fun InvoiceListScreen(viewModel: InvoiceListViewModel, modifier: Modifier = Modi
             // Franja divisoria
             Divider(modifier = Modifier.padding(vertical = 8.dp))
 
-            // Sección de facturas pagadas
+            // Sección de facturas por pagar
             Text(
                 modifier = Modifier.padding(4.dp),
-                text = "Facturas Pagadas",
+                text = "Facturas por Pagar",
                 fontSize = 24.sp,
                 color = MaterialTheme.colorScheme.primary
             )
@@ -119,12 +147,12 @@ fun InvoiceListScreen(viewModel: InvoiceListViewModel, modifier: Modifier = Modi
                     // Mostrar la suma de las cantidades y el monto total
                     Text(
                         modifier = Modifier.padding(4.dp),
-                        text = "Total Quantity for pagado: $totalQuantityPagado",
+                        text = "Total Quantity for pagar: $totalQuantityPagado",
                         fontSize = 20.sp
                     )
                     Text(
                         modifier = Modifier.padding(4.dp),
-                        text = "Total Amount for pagado: $totalAmountPagado",
+                        text = "Total Amount for pagar: $totalAmountPagado",
                         fontSize = 20.sp
                     )
                 }
