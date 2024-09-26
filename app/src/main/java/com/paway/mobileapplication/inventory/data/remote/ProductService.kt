@@ -10,7 +10,7 @@ interface ProductService {
     @GET("products")
     suspend fun searchProduct(@Query("productName") name: String): Response<List<ProductDto>>
 
-    @GET("products/{id}")
+    @GET("Products/{id}")
     suspend fun getProductById(@Path("id") id: String): Response<ProductDto>
 
 }
