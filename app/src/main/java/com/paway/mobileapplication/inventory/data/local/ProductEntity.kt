@@ -11,7 +11,7 @@ data class ProductEntity(
     @ColumnInfo("productName")
     val name: String,
     @ColumnInfo("stock")
-    val url: String
+    val stock: Int
 
 
 )

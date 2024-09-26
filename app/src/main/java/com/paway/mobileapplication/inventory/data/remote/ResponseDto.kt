@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName
 
 class ResponseDto (
     val response: String,
-    @SerializedName("results")
-    val products: List<ProductDto>?,
+    @SerializedName("products")
+    val products: List<ProductDto>,
     val error: String?
 )
