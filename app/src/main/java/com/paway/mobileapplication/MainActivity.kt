@@ -131,12 +131,11 @@ fun BottomButtonBar(modifier: Modifier = Modifier) {
                 )
             }
 
-            // Botón para Perfil
             Box(
                 modifier = Modifier
                     .size(circleSize)
                     .background(Color(0xFF4C8888), shape = CircleShape)
-                    .clickable(onClick = { /* Acción para Perfil */ }), // Hacer que todo el círculo sea clickeable
+                    .clickable(onClick = { /* Acción para Perfil */ }),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
