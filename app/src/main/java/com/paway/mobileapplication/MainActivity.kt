@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -14,8 +15,7 @@ import com.paway.mobileapplication.ui.theme.MobileApplicationTheme
 import com.paway.mobileapplication.data.remote.RetrofitInstance
 import com.paway.mobileapplication.inventory.data.repository.ProductRepositoryImpl
 import com.paway.mobileapplication.inventory.domain.use_case.SearchProductsUseCase
-import com.paway.mobileapplication.inventory.presentation.product_list.ProductListScreen
-
+import com.paway.mobileapplication.inventory.presentation.product_list.MainScreen
 class MainActivity : ComponentActivity() {
     private lateinit var searchProductsUseCase: SearchProductsUseCase
     private val productListViewModel: ProductListViewModel by viewModels {
@@ -34,10 +34,13 @@ class MainActivity : ComponentActivity() {
         setContent {
             MobileApplicationTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    ProductListScreen(
-                        viewModel = productListViewModel,
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                    // Wrap MainScreen in a Box to apply padding
+                    Box(modifier = Modifier.padding(innerPadding)) {
+                        MainScreen(
+                            viewModel = productListViewModel
+                            // No modifier parameter
+                        )
+                    }
                 }
             }
         }

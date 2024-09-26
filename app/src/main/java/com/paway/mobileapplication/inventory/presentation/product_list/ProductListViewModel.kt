@@ -1,24 +1,21 @@
 package com.paway.mobileapplication.inventory.presentation.product_list
 
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.paway.mobileapplication.inventory.common.Resource
 import com.paway.mobileapplication.inventory.domain.use_case.SearchProductsUseCase
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.*
 
 class ProductListViewModel(
     private val searchProductsUseCase: SearchProductsUseCase
 ) : ViewModel() {
 
-    private val _state = mutableStateOf(ProductListState())
-    val state: State<ProductListState> = _state
+    private val _state = MutableStateFlow(ProductListState())
+    val state: StateFlow<ProductListState> = _state.asStateFlow()
 
-    private val _searchQuery = mutableStateOf("")
-    val searchQuery: State<String> = _searchQuery
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
     init {
         searchProducts("")
