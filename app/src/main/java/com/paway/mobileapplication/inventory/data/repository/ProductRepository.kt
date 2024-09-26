@@ -7,7 +7,10 @@ import com.paway.mobileapplication.inventory.data.remote.ProductDto
 import com.paway.mobileapplication.inventory.data.remote.ProductService
 import com.paway.mobileapplication.inventory.data.remote.toProduct
 import com.paway.mobileapplication.inventory.domain.Product
+import com.paway.mobileapplication.inventory.domain.ProductHistory
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
 
 class ProductRepository(
@@ -22,6 +25,20 @@ class ProductRepository(
         return@withContext false
     }
 
+    private val _productHistory = MutableStateFlow<ProductHistory>(ProductHistory(emptyList()))
+    val productHistory: StateFlow<ProductHistory> = _productHistory
+
+    fun addToHistory(product: Product) {
+        val currentList = _productHistory.value.products.toMutableList()
+        if (!currentList.contains(product)) {
+            currentList.add(0, product)
+            _productHistory.value = ProductHistory(currentList.take(10))
+        }
+    }
+
+    fun clearHistory() {
+        _productHistory.value = ProductHistory(emptyList())
+    }
 
     suspend fun getAllProducts(): Resource<List<Product>> = withContext(Dispatchers.IO) {
         val response = productService.searchProduct("") // Assuming an empty string returns all products
@@ -76,5 +93,17 @@ class ProductRepository(
             return@withContext Resource.Error(message = "Product not found")
         }
         return@withContext Resource.Error(message = response.message())
+    }
+
+    suspend fun getProductFromLocal(id: String): Product? = withContext(Dispatchers.IO) {
+        productDao.fetchProductById(id)?.let { entity ->
+            return@withContext Product(
+                id = entity.id,
+                name = entity.name,
+                stock = entity.stock,
+                isFavorite = true // Asumimos que si está en la base de datos local, es favorito
+            )
+        }
+        return@withContext null
     }
 }

@@ -3,19 +3,24 @@ package com.paway.mobileapplication
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewModelScope
 import androidx.room.Room
 import com.paway.mobileapplication.inventory.common.Constants
 import com.paway.mobileapplication.inventory.data.local.AppDataBase
 import com.paway.mobileapplication.inventory.data.remote.ProductService
 import com.paway.mobileapplication.inventory.data.repository.ProductRepository
 import com.paway.mobileapplication.inventory.domain.GetProductByIdUseCase
-import com.paway.mobileapplication.inventory.presentation.ProductDetailScreen
-import com.paway.mobileapplication.inventory.presentation.ProductDetailViewModel
-import com.paway.mobileapplication.inventory.presentation.ProductListScreen
-import com.paway.mobileapplication.inventory.presentation.ProductListViewModel
+import com.paway.mobileapplication.inventory.domain.Product
+import com.paway.mobileapplication.inventory.presentation.*
+import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
@@ -40,44 +45,83 @@ class MainActivity : ComponentActivity() {
 
         val productListViewModel = ProductListViewModel(productRepository)
         val productDetailViewModel = ProductDetailViewModel(getProductByIdUseCase)
+        val productHistoryViewModel = ProductHistoryViewModel(productRepository)
 
         setContent {
-            AppContent(productListViewModel, productDetailViewModel)
+            AppContent(productListViewModel, productDetailViewModel, productHistoryViewModel, productRepository)
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppContent(
     productListViewModel: ProductListViewModel,
-    productDetailViewModel: ProductDetailViewModel
+    productDetailViewModel: ProductDetailViewModel,
+    productHistoryViewModel: ProductHistoryViewModel,
+    productRepository: ProductRepository
 ) {
-    val (currentScreen, setCurrentScreen) = remember { mutableStateOf<Screen>(Screen.ProductList) }
+    var selectedTab by remember { mutableStateOf(0) }
+    var currentProductId by remember { mutableStateOf<String?>(null) }
 
-    when (currentScreen) {
-        is Screen.ProductList -> {
-            ProductListScreen(
-                viewModel = productListViewModel,
-                onProductClick = { productId ->
-                    productDetailViewModel.getProductById(productId)
-                    setCurrentScreen(Screen.ProductDetail(productId))
-                }
-            )
+    Scaffold(
+        bottomBar = {
+            NavigationBar {
+                NavigationBarItem(
+                    selected = selectedTab == 0,
+                    onClick = { selectedTab = 0 },
+                    icon = { Icon(Icons.Default.List, contentDescription = "Products") },
+                    label = { Text("Products") }
+                )
+                NavigationBarItem(
+                    selected = selectedTab == 1,
+                    onClick = { selectedTab = 1 },
+                    icon = { Icon(Icons.Filled.ShoppingCart, contentDescription = "History") },
+                    label = { Text("History") }
+                )
+            }
         }
-        is Screen.ProductDetail -> {
-            ProductDetailScreen(
-                viewModel = productDetailViewModel,
-                productId = (currentScreen as Screen.ProductDetail).productId,
-                onBackClick = {
-                    setCurrentScreen(Screen.ProductList)
-                }
-            )
+    ) { paddingValues ->
+        when {
+            currentProductId != null -> {
+                ProductDetailScreen(
+                    viewModel = productDetailViewModel,
+                    productId = currentProductId!!,
+                    onBackClick = { currentProductId = null }
+                )
+            }
+            selectedTab == 0 -> {
+                ProductListScreen(
+                    viewModel = productListViewModel,
+                    onProductClick = { productId ->
+                        currentProductId = productId
+                        productListViewModel.viewModelScope.launch {
+                            val product = productRepository.getProductFromLocal(productId)
+                            if (product != null) {
+                                productRepository.addToHistory(product)
+                            } else {
+                                // Si no está en la base de datos local, usamos un producto simulado
+                                val simulatedProduct = Product(
+                                    id = productId,
+                                    name = "Unknown Product",
+                                    stock = 0,
+                                    isFavorite = false
+                                )
+                                productRepository.addToHistory(simulatedProduct)
+                            }
+                        }
+                    }
+                )
+            }
+            selectedTab == 1 -> {
+                ProductHistoryScreen(
+                    viewModel = productHistoryViewModel,
+                    onProductClick = { productId ->
+                        currentProductId = productId
+                    }
+                )
+            }
         }
     }
-}
-
-sealed class Screen {
-    object ProductList : Screen()
-    data class ProductDetail(val productId: String) : Screen()
 }
 
