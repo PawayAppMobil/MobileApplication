@@ -80,8 +80,10 @@ fun AppNavigation(navController: NavController, productListViewModel: ProductLis
 
                 ProductDetailScreen(
                     viewModel = detailViewModel,
+                    productListViewModel = productListViewModel,  // Asegúrate de pasar el ViewModel de la lista aquí
                     onSave = {
                         // Guardar los cambios y regresar
+                        productListViewModel.updateProduct(selectedProduct)
                         navController.popBackStack()
                     },
                     onCancel = { navController.popBackStack() }

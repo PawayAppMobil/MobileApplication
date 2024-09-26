@@ -87,16 +87,13 @@ fun ProductListScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                OutlinedButton(onClick = { viewModel.filterProductsByName() },
-                    colors = buttonColors) {
+                OutlinedButton(onClick = { viewModel.filterProductsByName() }, colors = buttonColors) {
                     Text("Filter by Name")
                 }
-                OutlinedButton(onClick = { viewModel.filterProductsByStock() },
-                    colors = buttonColors) {
+                OutlinedButton(onClick = { viewModel.filterProductsByStock() }, colors = buttonColors) {
                     Text("Filter by Stock")
                 }
-                OutlinedButton(onClick = { viewModel.filterProductsByFavorites() },
-                    colors = buttonColors) {
+                OutlinedButton(onClick = { viewModel.filterProductsByFavorites() }, colors = buttonColors) {
                     Text("Filter by Favorites")
                 }
             }
@@ -118,10 +115,16 @@ fun ProductListScreen(
                 LazyColumn {
                     itemsIndexed(products) { index, product ->
                         val backgroundColor = if (index % 2 == 0) Color(0xfffce199) else Color(0xff7faaaa)
-                        ProductItem(product, backgroundColor, onFavoritePressed = {
-                        }, onProductClicked = {
-                            onProductClicked(product)
-                        })
+                        ProductItem(
+                            product = product,
+                            backgroundColor = backgroundColor,
+                            onFavoritePressed = {
+                                viewModel.toggleFavorite(product) // Llama a la función del ViewModel
+                            },
+                            onProductClicked = {
+                                onProductClicked(product)
+                            }
+                        )
                     }
                 }
             }

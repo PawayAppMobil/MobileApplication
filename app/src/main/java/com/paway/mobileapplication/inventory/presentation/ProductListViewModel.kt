@@ -102,4 +102,18 @@ class ProductListViewModel(private val repository: ProductRepository): ViewModel
             }
         }
     }
+
+    fun updateProduct(updatedProduct: Product) {
+        // Actualiza el producto en tu lista de productos
+        val updatedProducts = state.value.data?.map { product ->
+            if (product.id == updatedProduct.id) {
+                updatedProduct // Reemplaza el producto existente
+            } else {
+                product // Deja el producto como está
+            }
+        }
+
+        // Actualiza el estado con la lista de productos actualizada
+        _state.value = state.value.copy(data = updatedProducts)
+    }
 }

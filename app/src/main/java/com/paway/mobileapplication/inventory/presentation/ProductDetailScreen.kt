@@ -15,6 +15,7 @@ import com.paway.mobileapplication.inventory.domain.Product
 @Composable
 fun ProductDetailScreen(
     viewModel: ProductDetailViewModel,
+    productListViewModel: ProductListViewModel,
     onSave: () -> Unit,
     onCancel: () -> Unit
 ) {
@@ -85,10 +86,19 @@ fun ProductDetailScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceAround
                 ) {
-                    Button(onClick = { viewModel.saveChanges(onSave) }) {
+                    Button(onClick = {
+                        // Guardar los cambios
+                        viewModel.saveChanges {
+                            // Aquí debes llamar a la función que actualiza el producto en la lista
+                            productListViewModel.updateProduct(product.copy(stock = stockDesired.toIntOrNull() ?: product.stock))
+                            onSave()
+                        }
+                    }) {
                         Text("Guardar")
                     }
-                    Button(onClick = { viewModel.cancelChanges(onCancel) }) {
+                    Button(onClick = {
+                        viewModel.cancelChanges(onCancel)
+                    }) {
                         Text("Cancelar")
                     }
                 }
