@@ -64,4 +64,17 @@ class ProductRepository(
     suspend fun deleteProduct(product: Product) = withContext(Dispatchers.IO) {
         productDao.delete(ProductEntity(product.id, product.name, product.stock))
     }
+
+    suspend fun getProductById(id: String): Resource<Product> = withContext(Dispatchers.IO) {
+        val response = productService.getProductById(id)
+        if (response.isSuccessful) {
+            response.body()?.let { productDto ->
+                val product = productDto.toProduct()
+                product.isFavorite = isFavorite(product.id)
+                return@withContext Resource.Success(data = product)
+            }
+            return@withContext Resource.Error(message = "Product not found")
+        }
+        return@withContext Resource.Error(message = response.message())
+    }
 }

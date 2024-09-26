@@ -1,5 +1,6 @@
 package com.paway.mobileapplication.inventory.presentation
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -14,7 +15,10 @@ import androidx.compose.ui.unit.dp
 import com.paway.mobileapplication.inventory.domain.Product
 
 @Composable
-fun ProductListScreen(viewModel: ProductListViewModel) {
+fun ProductListScreen(
+    viewModel: ProductListViewModel,
+    onProductClick: (String) -> Unit
+) {
     val state = viewModel.state.value
     val name = viewModel.name.value
 
@@ -42,19 +46,21 @@ fun ProductListScreen(viewModel: ProductListViewModel) {
                     .fillMaxWidth()
                     .padding(2.dp),
                 value = name,
-                onValueChange = {
-                    viewModel.onNameChanged(it)
-                })
-            OutlinedButton(onClick = {
-                viewModel.searchProduct()
-            }) { Text("Search") }
-            state.data?.let { products: List<Product> ->
+                onValueChange = { viewModel.onNameChanged(it) }
+            )
+            OutlinedButton(onClick = { viewModel.searchProduct() }) {
+                Text("Search")
+            }
+
+            val products = state.data
+            if (products != null) {
                 LazyColumn {
-                    items(products) { product: Product ->
+                    items(products) { product ->
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(4.dp)
+                                .clickable { onProductClick(product.id) }
                         ) {
                             ProductItem(product) {
                                 viewModel.toggleFavorite(product)
@@ -63,6 +69,7 @@ fun ProductListScreen(viewModel: ProductListViewModel) {
                     }
                 }
             }
+
             Column(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -93,9 +100,7 @@ fun ProductItem(product: Product, onFavoritePressed: () -> Unit) {
             Text(product.stock.toString())
         }
 
-        IconButton(onClick = {
-            onFavoritePressed()
-        }) {
+        IconButton(onClick = onFavoritePressed) {
             Icon(
                 Icons.Filled.Star,
                 "Favorite",
