@@ -1,5 +1,6 @@
 package com.paway.mobileapplication
 
+import InvoiceDashboardScreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -72,8 +73,7 @@ fun InventoryScreen() {
 
 @Composable
 fun InvoiceScreen() {
-    Text(text = "Pantalla de Facturas (se encarga apo)")
-
+    InvoiceDashboardScreen()
 }
 
 @Composable
