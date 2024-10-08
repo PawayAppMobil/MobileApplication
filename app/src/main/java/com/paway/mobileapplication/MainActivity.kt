@@ -1,5 +1,6 @@
 package com.paway.mobileapplication
 
+import InvoiceDashboardScreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -19,7 +20,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.paway.mobileapplication.data.repository.WebServiceRepository
+import com.paway.mobileapplication.common.RetrofitClient
+import com.paway.mobileapplication.presentation.facturas.InvoiceDashboardViewModel
 import com.paway.mobileapplication.ui.theme.MobileApplicationTheme
+val InvoiceDashboardviewModel = InvoiceDashboardViewModel(WebServiceRepository(RetrofitClient.webService))
 
 class MainActivitySelector : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -72,8 +77,7 @@ fun InventoryScreen() {
 
 @Composable
 fun InvoiceScreen() {
-    Text(text = "Pantalla de Facturas (se encarga apo)")
-
+    InvoiceDashboardScreen(InvoiceDashboardviewModel)
 }
 
 @Composable
