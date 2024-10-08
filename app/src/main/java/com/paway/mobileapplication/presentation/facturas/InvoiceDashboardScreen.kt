@@ -8,21 +8,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.tooling.preview.Preview
-
-@Preview(showBackground = true)
-@Composable
-fun InvoiceDashboardPreview() {
-    InvoiceDashboardScreen()
-}
+import com.paway.mobileapplication.presentation.facturas.DashboardUIState
+import com.paway.mobileapplication.presentation.facturas.InvoiceDashboardViewModel
 
 @Composable
-fun InvoiceDashboardScreen() {
+fun InvoiceDashboardScreen(viewModel: InvoiceDashboardViewModel) {
+    val state = viewModel.state.value
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -33,7 +29,7 @@ fun InvoiceDashboardScreen() {
         Spacer(modifier = Modifier.height(16.dp))
         DashboardButton()
         Spacer(modifier = Modifier.height(16.dp))
-        PendingInvoicesSection()
+        PendingInvoicesSection(state)
         Spacer(modifier = Modifier.height(48.dp))
         ActionButtons()
     }
@@ -71,8 +67,9 @@ fun DashboardButton() {
         Text("DASHBOARD", color = Color.White, fontWeight = FontWeight.Bold)
     }
 }
+
 @Composable
-fun PendingInvoicesSection() {
+fun PendingInvoicesSection(state: DashboardUIState) {
     Text(
         text = "PENDING INVOICES",
         fontWeight = FontWeight.Bold,
@@ -93,7 +90,7 @@ fun PendingInvoicesSection() {
         ) {
             InfoCard("Total facturas\npendientes", alignment = Alignment.Center)
             InfoCard("Total Pagos\nProgramados", alignment = Alignment.Center)
-            InfoCard("Total Pagos\nProgramados", alignment = Alignment.Center)
+            InfoCard("Alertas", alignment = Alignment.Center)
         }
         Spacer(modifier = Modifier.width(16.dp))
         Column(
@@ -101,10 +98,21 @@ fun PendingInvoicesSection() {
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.weight(1f)
         ) {
-            InfoCard("S/. 5000", alignment = Alignment.Center)
-            InfoCard("S/. 2000", alignment = Alignment.Center)
-            InfoCard("3 alertas", alignment = Alignment.Center)
+            InfoCard(state.totalPendingInvoices, alignment = Alignment.Center)
+            InfoCard(state.totalScheduledPayments, alignment = Alignment.Center)
+            InfoCard(state.totalAlerts, alignment = Alignment.Center)
         }
+    }
+
+    if (state.isLoading) {
+        CircularProgressIndicator()
+    }
+
+    state.error?.let { error ->
+        Text(
+            text = error,
+            color = Color.Red,
+        )
     }
 }
 
@@ -133,6 +141,7 @@ fun InfoCard(text: String, alignment: Alignment) {
         }
     }
 }
+
 @Composable
 fun ActionButtons() {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -141,26 +150,26 @@ fun ActionButtons() {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             ActionButton("IMPORTAR FACTURAS", Modifier.weight(1f)) {
-                handleActionButtonClick("IMPORTAR FACTURAS")
+                // Handle action
             }
             Spacer(modifier = Modifier.width(8.dp))
             ActionButton("VER FACTURAS", Modifier.weight(1f)) {
-                handleActionButtonClick("VER FACTURAS")
+                // Handle action
             }
         }
         ActionButton("PROGRAMAR PAGOS", Modifier.fillMaxWidth()) {
-            handleActionButtonClick("PROGRAMAR PAGOS")
+            // Handle action
         }
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             ActionButton("HISTORIAL DE PAGOS", Modifier.weight(1f)) {
-                handleActionButtonClick("HISTORIAL DE PAGOS")
+                // Handle action
             }
             Spacer(modifier = Modifier.width(8.dp))
             ActionButton("ALERTAS", Modifier.weight(1f)) {
-                handleActionButtonClick("ALERTAS")
+                // Handle action
             }
         }
     }
@@ -175,25 +184,5 @@ fun ActionButton(text: String, modifier: Modifier = Modifier, onClick: () -> Uni
         shape = RoundedCornerShape(24.dp)
     ) {
         Text(text, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
-    }
-}
-
-fun handleActionButtonClick(action: String) {
-    when (action) {
-        "IMPORTAR FACTURAS" -> {
-
-        }
-        "VER FACTURAS" -> {
-
-        }
-        "PROGRAMAR PAGOS" -> {
-
-        }
-        "HISTORIAL DE PAGOS" -> {
-
-        }
-        "ALERTAS" -> {
-
-        }
     }
 }
