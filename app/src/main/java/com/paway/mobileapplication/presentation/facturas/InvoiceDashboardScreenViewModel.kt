@@ -48,6 +48,9 @@ class InvoiceDashboardViewModel(private val repository: WebServiceRepository) : 
         }
     }
 
+    // REFERENCIA
+    // Actualiza el estado del panel de control con el total de facturas pendientes, pagos programados y alertas.
+    // Filtra las facturas para determinar las pendientes y los pagos programados, y luego calcula las alertas.
     private fun updateDashboardState(invoices: List<Invoice>) {
         val pendingInvoices = invoices.filter { it.status == "PENDING" }
         val scheduledPayments = invoices.filter { it.status == "SCHEDULED" }
@@ -60,7 +63,9 @@ class InvoiceDashboardViewModel(private val repository: WebServiceRepository) : 
             isLoading = false
         )
     }
-
+    // REFERENCIA
+    // Calcula cuántas facturas pendientes tienen una fecha de vencimiento dentro de los próximos 7 días.
+    // Retorna el número de facturas que cumplen con este criterio.
     private fun calculateAlerts(invoices: List<Invoice>): Int {
         val calendar = Calendar.getInstance()
         calendar.add(Calendar.DAY_OF_YEAR, 7)
