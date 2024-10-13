@@ -1,7 +1,7 @@
-package com.paway.mobileapplication.data.remote.dto.invoice
+package com.paway.mobileapplication.invoces.data.remote.dto.invoice
 
-import com.paway.mobileapplication.domain.model.invoice.Invoice
-import com.paway.mobileapplication.domain.model.invoice.InvoiceItem
+import com.paway.mobileapplication.invoces.domain.model.invoice.Invoice
+import com.paway.mobileapplication.invoces.domain.model.invoice.InvoiceItem
 import java.util.Date
 
 data class InvoiceRequestDto(

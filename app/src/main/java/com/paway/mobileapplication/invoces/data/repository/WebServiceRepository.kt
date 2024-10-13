@@ -1,11 +1,10 @@
-package com.paway.mobileapplication.data.repository
+package com.paway.mobileapplication.invoces.data.repository
 
 import com.paway.mobileapplication.common.Resource
-import com.paway.mobileapplication.data.remote.WebService
-import com.paway.mobileapplication.data.remote.dto.invoice.InvoiceRequestDto
-import com.paway.mobileapplication.data.remote.dto.invoice.toInvoice
-import com.paway.mobileapplication.data.remote.dto.invoice.toInvoiceRequestDto
-import com.paway.mobileapplication.domain.model.invoice.Invoice
+import com.paway.mobileapplication.invoces.data.remote.WebService
+import com.paway.mobileapplication.invoces.data.remote.dto.invoice.toInvoice
+import com.paway.mobileapplication.invoces.data.remote.dto.invoice.toInvoiceRequestDto
+import com.paway.mobileapplication.invoces.domain.model.invoice.Invoice
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 

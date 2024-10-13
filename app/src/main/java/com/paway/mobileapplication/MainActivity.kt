@@ -20,9 +20,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.paway.mobileapplication.data.repository.WebServiceRepository
+import com.paway.mobileapplication.invoces.data.repository.WebServiceRepository
 import com.paway.mobileapplication.common.RetrofitClient
-import com.paway.mobileapplication.presentation.facturas.InvoiceDashboardViewModel
+import com.paway.mobileapplication.invoces.presentation.facturas.InvoiceDashboardViewModel
 import com.paway.mobileapplication.ui.theme.MobileApplicationTheme
 val InvoiceDashboardviewModel = InvoiceDashboardViewModel(WebServiceRepository(RetrofitClient.webService))
 

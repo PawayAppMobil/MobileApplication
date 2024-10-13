@@ -1,14 +1,13 @@
-package com.paway.mobileapplication.presentation.facturas
+package com.paway.mobileapplication.invoces.presentation.facturas
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.paway.mobileapplication.common.Resource
-import com.paway.mobileapplication.data.repository.WebServiceRepository
-import com.paway.mobileapplication.domain.model.invoice.Invoice
+import com.paway.mobileapplication.invoces.data.repository.WebServiceRepository
+import com.paway.mobileapplication.invoces.domain.model.invoice.Invoice
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
 import java.util.*
 
 data class DashboardUIState(

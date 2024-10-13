@@ -1,4 +1,4 @@
-package com.paway.mobileapplication.data.remote.dto.invoice
+package com.paway.mobileapplication.invoces.data.remote.dto.invoice
 
 data class InvoiceItemDto(
     val id: String,

@@ -12,8 +12,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.paway.mobileapplication.presentation.facturas.DashboardUIState
-import com.paway.mobileapplication.presentation.facturas.InvoiceDashboardViewModel
+import com.paway.mobileapplication.invoces.presentation.facturas.DashboardUIState
+import com.paway.mobileapplication.invoces.presentation.facturas.InvoiceDashboardViewModel
 
 @Composable
 fun InvoiceDashboardScreen(viewModel: InvoiceDashboardViewModel) {

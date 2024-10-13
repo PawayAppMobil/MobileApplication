@@ -1,4 +1,4 @@
-package com.paway.mobileapplication.domain.model.invoice
+package com.paway.mobileapplication.invoces.domain.model.invoice
 
 import java.util.Date
 

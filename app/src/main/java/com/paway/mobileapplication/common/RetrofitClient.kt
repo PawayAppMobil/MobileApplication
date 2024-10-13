@@ -1,7 +1,7 @@
 package com.paway.mobileapplication.common
 
 import com.google.gson.GsonBuilder
-import com.paway.mobileapplication.data.remote.WebService
+import com.paway.mobileapplication.invoces.data.remote.WebService
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 

@@ -1,7 +1,7 @@
-package com.paway.mobileapplication.data.remote
+package com.paway.mobileapplication.invoces.data.remote
 
-import com.paway.mobileapplication.data.remote.dto.invoice.InvoiceRequestDto
-import com.paway.mobileapplication.data.remote.dto.invoice.InvoiceResponseDto
+import com.paway.mobileapplication.invoces.data.remote.dto.invoice.InvoiceRequestDto
+import com.paway.mobileapplication.invoces.data.remote.dto.invoice.InvoiceResponseDto
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
