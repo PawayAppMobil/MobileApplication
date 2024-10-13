@@ -29,16 +29,21 @@ val InvoiceDashboardviewModel = InvoiceDashboardViewModel(WebServiceRepository(R
 class MainActivitySelector : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val userId = intent.getStringExtra("USER_ID")
+        // Obtener el userId del Intent
+
+
         setContent {
             MobileApplicationTheme {
-                MainScreen()
+                MainScreen(userId) // Pasar el userId a MainScreen
             }
         }
     }
 }
 
+
 @Composable
-fun MainScreen() {
+fun MainScreen(userId: String?) {
     var selectedScreen by remember { mutableStateOf("home") }
 
     Column(
@@ -52,7 +57,7 @@ fun MainScreen() {
                 .weight(1f)
         ) {
             when (selectedScreen) {
-                "home" -> HomeScreen()
+                "home" -> HomeScreen(userId)
                 "inventory" -> InventoryScreen()
                 "invoice" -> InvoiceScreen()
                 "balance" -> BalanceScreen()
@@ -66,8 +71,8 @@ fun MainScreen() {
 }
 
 @Composable
-fun HomeScreen() {
-    Text(text = "Pantalla de Inicio")
+fun HomeScreen(userId: String?) {
+    Text(text = userId ?: "Pantalla de Inicio")
 }
 
 @Composable
@@ -145,6 +150,6 @@ fun BottomNavItem(icon: ImageVector, label: String, isSelected: Boolean, onClick
 @Composable
 fun MainScreenPreview() {
     MobileApplicationTheme {
-        MainScreen()
+        MainScreen(userId = "Test User")
     }
 }
