@@ -15,6 +15,8 @@ import retrofit2.http.Query
 import retrofit2.http.Headers
 import retrofit2.http.Multipart
 import retrofit2.http.Part
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 
 interface WebService {
     @GET("/api/invoices/{id}")
@@ -32,9 +34,12 @@ interface WebService {
     @GET("/api/invoices")
     suspend fun getAllInvoices(): Response<List<InvoiceResponseDto>>
 
+    @Multipart
     @POST("/api/invoices")
-    @Headers("Content-Type: application/json")
-    suspend fun createInvoice(@Body invoice: InvoiceRequestDto): Response<InvoiceResponseDto>
+    suspend fun createInvoice(
+        @Part("invoice") invoice: InvoiceRequestDto,
+        @Part("document") document: String?
+    ): Response<InvoiceResponseDto>
 
     @GET("/api/invoices/status/{status}")
     suspend fun getInvoicesByStatus(@Path("status") status: String): Response<List<InvoiceResponseDto>>

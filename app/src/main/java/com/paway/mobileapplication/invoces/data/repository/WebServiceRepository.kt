@@ -4,13 +4,13 @@ import com.paway.mobileapplication.common.Resource
 import com.paway.mobileapplication.invoces.data.remote.WebService
 import com.paway.mobileapplication.invoces.data.remote.dto.invoice.toInvoice
 import com.paway.mobileapplication.invoces.data.remote.dto.invoice.toInvoiceRequestDto
-import com.paway.mobileapplication.invoces.data.remote.dto.transaction.toTransaction
-import com.paway.mobileapplication.invoces.data.remote.dto.transaction.toTransactionRequestDto
 import com.paway.mobileapplication.invoces.domain.model.invoice.Invoice
-import com.paway.mobileapplication.invoces.domain.model.transaction.Transaction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.File
+import android.util.Base64
+import com.paway.mobileapplication.invoces.data.remote.dto.transaction.toTransaction
+import com.paway.mobileapplication.invoces.data.remote.dto.transaction.toTransactionRequestDto
+import com.paway.mobileapplication.invoces.domain.model.transaction.Transaction
 
 class WebServiceRepository(private val webService: WebService) {
 
@@ -86,13 +86,12 @@ class WebServiceRepository(private val webService: WebService) {
         }
     }
 
-    suspend fun createInvoice(invoice: Invoice, documentFile: File?): Resource<Invoice> = withContext(Dispatchers.IO) {
+    suspend fun createInvoice(invoice: Invoice, document: ByteArray?): Resource<Invoice> = withContext(Dispatchers.IO) {
         try {
             val invoiceRequestDto = invoice.toInvoiceRequestDto()
-            // Aquí podrías agregar la lógica para manejar el documento si es necesario
-            // Por ahora, simplemente lo ignoraremos
-
-            val response = webService.createInvoice(invoiceRequestDto)
+            val documentBase64 = document?.let { Base64.encodeToString(it, Base64.DEFAULT) }
+            
+            val response = webService.createInvoice(invoiceRequestDto, documentBase64)
             if (response.isSuccessful) {
                 response.body()?.let { invoiceDto ->
                     return@withContext Resource.Success(data = invoiceDto.toInvoice())

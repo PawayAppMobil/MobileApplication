@@ -1,35 +1,43 @@
 package com.paway.mobileapplication.invoces.presentation.facturas
 
-import androidx.compose.foundation.border
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.paway.mobileapplication.invoces.domain.model.invoice.InvoiceItem
 import java.util.*
-import java.io.File
+import java.io.ByteArrayOutputStream
 
 @Composable
 fun ImportInvoiceScreen(viewModel: ImportInvoiceViewModel, userId: String?) {
     val state = viewModel.state.value
+    val context = LocalContext.current
 
     LaunchedEffect(userId) {
         userId?.let { viewModel.setUserId(it) }
     }
 
-    val pickFile = rememberFilePicker { bytes ->
-        viewModel.updateInvoiceDetails(document = bytes)
+    val pickDocument = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let {
+            val inputStream = context.contentResolver.openInputStream(it)
+            val outputStream = ByteArrayOutputStream()
+            inputStream?.use { input ->
+                outputStream.use { output ->
+                    input.copyTo(output)
+                }
+            }
+            val byteArray = outputStream.toByteArray()
+            viewModel.updateSelectedDocument(byteArray)
+        }
     }
 
     Column(
@@ -50,13 +58,14 @@ fun ImportInvoiceScreen(viewModel: ImportInvoiceViewModel, userId: String?) {
 
         // Document Upload
         Button(
-            onClick = { pickFile() },
+            onClick = { pickDocument.launch("*/*") },
             modifier = Modifier.align(Alignment.End)
         ) {
             Text(if (state.selectedDocument != null) "Document Selected" else "Upload Document")
         }
 
         // Invoice Items
+        Text("Invoice Items", style = MaterialTheme.typography.titleMedium)
         LazyColumn {
             items(state.invoice.items) { item ->
                 InvoiceItemRow(item, onRemove = { viewModel.removeInvoiceItem(item) })
@@ -68,8 +77,16 @@ fun ImportInvoiceScreen(viewModel: ImportInvoiceViewModel, userId: String?) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Display total amount
+        Text(
+            "Total Amount: $${state.invoice.items.sumOf { it.quantity * it.unitPrice }}",
+            style = MaterialTheme.typography.titleMedium
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         Button(
-            onClick = { viewModel.createInvoiceAndTransaction(null) }, // Pasamos null porque no estamos usando File directamente
+            onClick = { viewModel.createInvoiceAndTransaction() },
             modifier = Modifier.align(Alignment.End)
         ) {
             Text("Create Invoice and Transaction")

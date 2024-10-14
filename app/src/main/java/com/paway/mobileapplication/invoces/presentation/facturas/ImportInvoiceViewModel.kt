@@ -1,6 +1,5 @@
 package com.paway.mobileapplication.invoces.presentation.facturas
 
-import android.util.Base64
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -11,7 +10,6 @@ import com.paway.mobileapplication.invoces.domain.model.invoice.Invoice
 import com.paway.mobileapplication.invoces.domain.model.invoice.InvoiceItem
 import com.paway.mobileapplication.invoces.domain.model.transaction.Transaction
 import kotlinx.coroutines.launch
-import java.io.File
 import java.util.*
 
 data class ImportInvoiceState(
@@ -81,11 +79,28 @@ class ImportInvoiceViewModel(private val repository: WebServiceRepository) : Vie
         )
     }
 
-    fun createInvoiceAndTransaction(documentFile: File?) {
+    fun updateSelectedDocument(document: ByteArray) {
+        _state.value = _state.value.copy(selectedDocument = document)
+    }
+
+    fun createInvoiceAndTransaction() {
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true, error = null, success = false)
 
-            val invoiceResult = repository.createInvoice(_state.value.invoice, documentFile)
+            // Asegúrate de que la lista de items no esté vacía
+            if (_state.value.invoice.items.isEmpty()) {
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = "La factura debe tener al menos un item"
+                )
+                return@launch
+            }
+
+            // Calcula el monto total de la factura
+            val totalAmount = _state.value.invoice.items.sumOf { it.quantity * it.unitPrice }
+            val updatedInvoice = _state.value.invoice.copy(amount = totalAmount)
+
+            val invoiceResult = repository.createInvoice(updatedInvoice, _state.value.selectedDocument)
             when (invoiceResult) {
                 is Resource.Success -> {
                     val createdInvoice = invoiceResult.data

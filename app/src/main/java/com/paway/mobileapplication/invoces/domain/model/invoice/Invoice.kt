@@ -8,7 +8,7 @@ data class Invoice(
     val date: Date = Date(),
     val amount: Double = 0.0,
     val status: String = "",
-    val items: List<InvoiceItem> = emptyList(),
+    val items: List<InvoiceItem> = listOf(),
     val transactionId: String = "",
     val userId: String = "",
     val dueDate: Date = Date(),
