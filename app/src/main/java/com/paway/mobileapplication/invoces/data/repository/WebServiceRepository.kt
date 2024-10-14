@@ -94,9 +94,9 @@ class WebServiceRepository(private val webService: WebService) {
                 }
                 return@withContext Resource.Error("Empty response body")
             }
-            return@withContext Resource.Error(response.message())
+            return@withContext Resource.Error("Error: ${response.code()} - ${response.errorBody()?.string()}")
         } catch (e: Exception) {
-            return@withContext Resource.Error(e.message ?: "An error occurred")
+            return@withContext Resource.Error("An error occurred: ${e.message}")
         }
     }
 

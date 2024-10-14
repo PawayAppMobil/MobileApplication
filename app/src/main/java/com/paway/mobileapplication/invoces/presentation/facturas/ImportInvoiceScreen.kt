@@ -27,6 +27,10 @@ fun ImportInvoiceScreen(viewModel: ImportInvoiceViewModel, userId: String?) {
         userId?.let { viewModel.setUserId(it) }
     }
 
+    val pickFile = rememberFilePicker { bytes ->
+        viewModel.updateInvoiceDetails(document = bytes)
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -42,6 +46,14 @@ fun ImportInvoiceScreen(viewModel: ImportInvoiceViewModel, userId: String?) {
             label = { Text("Status") },
             modifier = Modifier.fillMaxWidth()
         )
+
+        // Document Upload
+        Button(
+            onClick = { pickFile() },
+            modifier = Modifier.align(Alignment.End)
+        ) {
+            Text(if (state.selectedDocument != null) "Document Selected" else "Upload Document")
+        }
 
         // Invoice Items
         LazyColumn {

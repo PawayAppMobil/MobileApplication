@@ -12,7 +12,7 @@ data class InvoiceRequestDto(
     val transactionId: String,
     val userId: String,
     val dueDate: Date,
-    val document: String?
+    val document: List<String>
 )
 
 fun Invoice.toInvoiceRequestDto() = InvoiceRequestDto(

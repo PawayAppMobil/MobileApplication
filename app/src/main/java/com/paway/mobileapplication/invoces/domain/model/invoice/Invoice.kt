@@ -11,5 +11,5 @@ data class Invoice(
     val transactionId: String = "",
     val userId: String = "",
     val dueDate: Date = Date(),
-    val document: String? = null // Representamos el documento como un String opcional
+    val document: List<String> = emptyList() // Cambiado a List<String>
 )

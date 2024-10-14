@@ -11,12 +11,14 @@ import com.paway.mobileapplication.invoces.domain.model.invoice.InvoiceItem
 import com.paway.mobileapplication.invoces.domain.model.transaction.Transaction
 import kotlinx.coroutines.launch
 import java.util.*
+import java.util.Base64
 
 data class ImportInvoiceState(
     val invoice: Invoice = Invoice(),
     val isLoading: Boolean = false,
     val error: String? = null,
-    val success: Boolean = false
+    val success: Boolean = false,
+    val selectedDocument: ByteArray? = null
 )
 
 class ImportInvoiceViewModel(private val repository: WebServiceRepository) : ViewModel() {
@@ -43,14 +45,15 @@ class ImportInvoiceViewModel(private val repository: WebServiceRepository) : Vie
         date: Date? = null,
         dueDate: Date? = null,
         status: String? = null,
-        document: String? = null
+        document: ByteArray? = null
     ) {
         updateInvoice(
             date = date,
             dueDate = dueDate,
             status = status,
-            document = document
+            document = document?.let { listOf(Base64.getEncoder().encodeToString(it)) }
         )
+        _state.value = _state.value.copy(selectedDocument = document)
     }
 
     private fun updateInvoice(
@@ -61,7 +64,7 @@ class ImportInvoiceViewModel(private val repository: WebServiceRepository) : Vie
         transactionId: String? = null,
         userId: String? = null,
         dueDate: Date? = null,
-        document: String? = null
+        document: List<String>? = null
     ) {
         _state.value = _state.value.copy(
             invoice = _state.value.invoice.copy(
@@ -79,7 +82,7 @@ class ImportInvoiceViewModel(private val repository: WebServiceRepository) : Vie
 
     fun createInvoiceAndTransaction() {
         viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true)
+            _state.value = _state.value.copy(isLoading = true, error = null, success = false)
 
             val invoiceResult = repository.createInvoice(_state.value.invoice)
             when (invoiceResult) {
