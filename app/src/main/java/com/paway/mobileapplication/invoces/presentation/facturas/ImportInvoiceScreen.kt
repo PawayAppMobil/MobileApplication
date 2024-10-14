@@ -2,6 +2,8 @@ package com.paway.mobileapplication.invoces.presentation.facturas
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
@@ -14,158 +16,128 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.paway.mobileapplication.invoces.domain.model.invoice.InvoiceItem
+import java.util.*
 
 @Composable
-fun ImportInvoiceScreen() {
-    var selectedFile by remember { mutableStateOf<String?>(null) }
-    var invoiceType by remember { mutableStateOf<String?>(null) }
+fun ImportInvoiceScreen(viewModel: ImportInvoiceViewModel, userId: String?) {
+    val state = viewModel.state.value
+
+    LaunchedEffect(userId) {
+        userId?.let { viewModel.setUserId(it) }
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Header()
-        Spacer(modifier = Modifier.height(24.dp))
-        FileUploadSection(
-            selectedFile = selectedFile,
-            onFileSelected = { selectedFile = it }
+        Text("Create Invoice", style = MaterialTheme.typography.headlineMedium)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Invoice Details
+        OutlinedTextField(
+            value = state.invoice.status,
+            onValueChange = { viewModel.updateInvoiceDetails(status = it) },
+            label = { Text("Status") },
+            modifier = Modifier.fillMaxWidth()
         )
-        Spacer(modifier = Modifier.height(24.dp))
-        InvoiceTypeSelection(
-            selectedType = invoiceType,
-            onTypeSelected = { invoiceType = it }
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-        ImportStatusSection()
+
+        // Invoice Items
+        LazyColumn {
+            items(state.invoice.items) { item ->
+                InvoiceItemRow(item, onRemove = { viewModel.removeInvoiceItem(item) })
+            }
+            item {
+                AddInvoiceItemButton(onAdd = { viewModel.addInvoiceItem(it) })
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = { viewModel.createInvoiceAndTransaction() },
+            modifier = Modifier.align(Alignment.End)
+        ) {
+            Text("Create Invoice and Transaction")
+        }
+
+        if (state.isLoading) {
+            CircularProgressIndicator()
+        }
+
+        state.error?.let { error ->
+            Text(error, color = MaterialTheme.colorScheme.error)
+        }
+
+        if (state.success) {
+            Text("Invoice and Transaction created successfully!", color = MaterialTheme.colorScheme.primary)
+        }
     }
 }
 
 @Composable
-fun Header() {
+fun InvoiceItemRow(item: InvoiceItem, onRemove: () -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = "IMPORT INVOICE",
-            fontWeight = FontWeight.Bold,
-            fontSize = 18.sp,
-            color = Color(0xFF006064)
-        )
-        Icon(
-            imageVector = Icons.Default.Notifications,
-            contentDescription = "Notifications",
-            tint = Color(0xFF006064)
-        )
-    }
-}
-
-@Composable
-fun FileUploadSection(
-    selectedFile: String?,
-    onFileSelected: (String) -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Text("File Upload", fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(
-                value = selectedFile ?: "No file selected",
-                onValueChange = { },
-                readOnly = true,
-                modifier = Modifier.fillMaxWidth(),
-                trailingIcon = {
-                    Button(
-                        onClick = { /* Implement file selection logic */ },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF012E2E))
-                    ) {
-                        Text("Browse")
-                    }
-                }
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(100.dp)
-                    .border(1.dp, Color.Gray, RoundedCornerShape(4.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("Drag & Drop here\nOr\nBrowse", textAlign = TextAlign.Center)
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                onClick = { /* Implement upload logic */ },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.LightGray),
-                enabled = false
-            ) {
-                Text("Upload Now", color = Color.Gray)
-            }
+        Text(item.description, modifier = Modifier.weight(1f))
+        Text("${item.quantity} x ${item.unitPrice}")
+        IconButton(onClick = onRemove) {
+            Text("X")
         }
     }
 }
 
 @Composable
-fun InvoiceTypeSelection(
-    selectedType: String?,
-    onTypeSelected: (String) -> Unit
-) {
+fun AddInvoiceItemButton(onAdd: (InvoiceItem) -> Unit) {
+    var description by remember { mutableStateOf("") }
+    var quantity by remember { mutableStateOf("") }
+    var unitPrice by remember { mutableStateOf("") }
+
     Column {
-        Text("Invoice Type", fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(
+            value = description,
+            onValueChange = { description = it },
+            label = { Text("Description") },
+            modifier = Modifier.fillMaxWidth()
+        )
         Row {
-            RadioButton(
-                selected = selectedType == "Purchase",
-                onClick = { onTypeSelected("Purchase") }
+            OutlinedTextField(
+                value = quantity,
+                onValueChange = { quantity = it },
+                label = { Text("Quantity") },
+                modifier = Modifier.weight(1f)
             )
-            Text("Purchase", modifier = Modifier.align(Alignment.CenterVertically))
-            Spacer(modifier = Modifier.width(16.dp))
-            RadioButton(
-                selected = selectedType == "Sale",
-                onClick = { onTypeSelected("Sale") }
+            Spacer(modifier = Modifier.width(8.dp))
+            OutlinedTextField(
+                value = unitPrice,
+                onValueChange = { unitPrice = it },
+                label = { Text("Unit Price") },
+                modifier = Modifier.weight(1f)
             )
-            Text("Sale", modifier = Modifier.align(Alignment.CenterVertically))
-        }
-    }
-}
-
-@Composable
-fun ImportStatusSection() {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Button(
-            onClick = { /* Implement status check logic */ },
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF012E2E))
-        ) {
-            Text("Estado de importación")
         }
         Button(
-            onClick = { /* Implement success action */ },
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF012E2E))
+            onClick = {
+                onAdd(
+                    InvoiceItem(
+                        id = UUID.randomUUID().toString(),
+                        description = description,
+                        quantity = quantity.toIntOrNull() ?: 0,
+                        unitPrice = unitPrice.toDoubleOrNull() ?: 0.0,
+                        productId = "" // You might want to handle this differently
+                    )
+                )
+                description = ""
+                quantity = ""
+                unitPrice = ""
+            },
+            modifier = Modifier.align(Alignment.End)
         ) {
-            Text("EXISTOSO")
+            Text("Add Item")
         }
-    }
-}
-
-// Placeholder for ViewModel
-class ImportInvoiceViewModel {
-    // Implement ViewModel logic here
-    fun uploadInvoice(file: String, type: String) {
-        // Implement invoice upload logic
-    }
-
-    fun createTransaction() {
-        // Implement transaction creation logic
     }
 }

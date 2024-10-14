@@ -6,20 +6,24 @@ import java.util.Date
 
 data class InvoiceRequestDto(
     val date: Date,
+    val amount: Double,
     val status: String,
     val items: List<InvoiceItemDto>,
     val transactionId: String,
     val userId: String,
-    val dueDate: Date
+    val dueDate: Date,
+    val document: String?
 )
 
 fun Invoice.toInvoiceRequestDto() = InvoiceRequestDto(
     date = date,
+    amount = amount,
     status = status,
     items = items.map { it.toInvoiceItemDto() },
     transactionId = transactionId,
     userId = userId,
-    dueDate = dueDate
+    dueDate = dueDate,
+    document = document
 )
 
 fun InvoiceItem.toInvoiceItemDto() = InvoiceItemDto(

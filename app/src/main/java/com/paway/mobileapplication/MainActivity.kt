@@ -1,6 +1,6 @@
 package com.paway.mobileapplication
 
-import InvoiceDashboardScreen
+
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -22,6 +22,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.paway.mobileapplication.invoces.data.repository.WebServiceRepository
 import com.paway.mobileapplication.common.RetrofitClient
+import com.paway.mobileapplication.invoces.presentation.facturas.InvoiceDashboardScreen
 import com.paway.mobileapplication.invoces.presentation.facturas.InvoiceDashboardViewModel
 import com.paway.mobileapplication.ui.theme.MobileApplicationTheme
 

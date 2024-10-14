@@ -1,3 +1,5 @@
+package com.paway.mobileapplication.invoces.presentation.facturas
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,19 +14,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.paway.mobileapplication.invoces.presentation.facturas.DashboardUIState
-import com.paway.mobileapplication.invoces.presentation.facturas.InvoiceDashboardViewModel
+import com.paway.mobileapplication.invoces.data.repository.WebServiceRepository
+import com.paway.mobileapplication.common.RetrofitClient
 
 @Composable
-fun InvoiceDashboardScreen(viewModel: InvoiceDashboardViewModel, userId: String?) {
-    // Controla la pantalla actual que se va a mostrar
+fun InvoiceDashboardScreen(dashboardViewModel: InvoiceDashboardViewModel, userId: String?) {
     var currentScreen by remember { mutableStateOf("dashboard") }
 
     LaunchedEffect(userId) {
-        userId?.let { viewModel.setUserId(it) }
+        userId?.let { dashboardViewModel.setUserId(it) }
     }
 
-    val state = viewModel.state.value
+    val state = dashboardViewModel.state.value
+
+    val importInvoiceViewModel = ImportInvoiceViewModel(WebServiceRepository(RetrofitClient.webService))
 
     Column(
         modifier = Modifier
@@ -35,9 +38,8 @@ fun InvoiceDashboardScreen(viewModel: InvoiceDashboardViewModel, userId: String?
         Header()
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Cambia el contenido de la pantalla según el estado actual
         when (currentScreen) {
-            "importarFacturas" -> ImportInvoiceScreen()
+            "importarFacturas" -> ImportInvoiceScreen(importInvoiceViewModel, userId)
             "verFacturas" -> ViewInvoicesScreen()
             "programarPagos" -> ProgramPaymentsScreen()
             "historialPagos" -> PaymentHistoryScreen()
@@ -205,10 +207,7 @@ fun ActionButton(text: String, modifier: Modifier = Modifier, onClick: () -> Uni
     }
 }
 
-@Composable
-fun ImportInvoiceScreen() {
-com.paway.mobileapplication.invoces.presentation.facturas.ImportInvoiceScreen()
-}
+
 
 @Composable
 fun ViewInvoicesScreen() {

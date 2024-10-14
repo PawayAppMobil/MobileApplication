@@ -4,7 +4,10 @@ import com.paway.mobileapplication.common.Resource
 import com.paway.mobileapplication.invoces.data.remote.WebService
 import com.paway.mobileapplication.invoces.data.remote.dto.invoice.toInvoice
 import com.paway.mobileapplication.invoces.data.remote.dto.invoice.toInvoiceRequestDto
+import com.paway.mobileapplication.invoces.data.remote.dto.transaction.toTransaction
+import com.paway.mobileapplication.invoces.data.remote.dto.transaction.toTransactionRequestDto
 import com.paway.mobileapplication.invoces.domain.model.invoice.Invoice
+import com.paway.mobileapplication.invoces.domain.model.transaction.Transaction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -133,6 +136,21 @@ class WebServiceRepository(private val webService: WebService) {
             if (response.isSuccessful) {
                 response.body()?.let { invoiceDtos ->
                     return@withContext Resource.Success(data = invoiceDtos.map { it.toInvoice() })
+                }
+                return@withContext Resource.Error("Empty response body")
+            }
+            return@withContext Resource.Error(response.message())
+        } catch (e: Exception) {
+            return@withContext Resource.Error(e.message ?: "An error occurred")
+        }
+    }
+
+    suspend fun createTransaction(transaction: Transaction): Resource<Transaction> = withContext(Dispatchers.IO) {
+        try {
+            val response = webService.createTransaction(transaction.toTransactionRequestDto())
+            if (response.isSuccessful) {
+                response.body()?.let { transactionDto ->
+                    return@withContext Resource.Success(data = transactionDto.toTransaction())
                 }
                 return@withContext Resource.Error("Empty response body")
             }
