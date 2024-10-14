@@ -86,12 +86,10 @@ class WebServiceRepository(private val webService: WebService) {
         }
     }
 
-    suspend fun createInvoice(invoice: Invoice, document: ByteArray?): Resource<Invoice> = withContext(Dispatchers.IO) {
+    suspend fun createInvoice(invoice: Invoice): Resource<Invoice> = withContext(Dispatchers.IO) {
         try {
             val invoiceRequestDto = invoice.toInvoiceRequestDto()
-            val documentBase64 = document?.let { Base64.encodeToString(it, Base64.DEFAULT) }
-            
-            val response = webService.createInvoice(invoiceRequestDto, documentBase64)
+            val response = webService.createInvoice(invoiceRequestDto)
             if (response.isSuccessful) {
                 response.body()?.let { invoiceDto ->
                     return@withContext Resource.Success(data = invoiceDto.toInvoice())

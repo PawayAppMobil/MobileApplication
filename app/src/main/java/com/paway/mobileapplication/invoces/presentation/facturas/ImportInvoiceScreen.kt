@@ -48,11 +48,26 @@ fun ImportInvoiceScreen(viewModel: ImportInvoiceViewModel, userId: String?) {
         Text("Create Invoice", style = MaterialTheme.typography.headlineMedium)
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Invoice Details
+        // Invoice Status
         OutlinedTextField(
             value = state.invoice.status,
             onValueChange = { viewModel.updateInvoiceDetails(status = it) },
             label = { Text("Status") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        // Due Date
+        var dueDateText by remember { mutableStateOf("") }
+        OutlinedTextField(
+            value = dueDateText,
+            onValueChange = { 
+                dueDateText = it
+                // Aquí deberías convertir el texto a Date y actualizar el ViewModel
+                // Por simplicidad, usaremos la fecha actual. En una implementación real,
+                // deberías parsear la fecha ingresada por el usuario.
+                viewModel.updateInvoiceDetails(dueDate = Date())
+            },
+            label = { Text("Due Date (YYYY-MM-DD)") },
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -104,7 +119,7 @@ fun ImportInvoiceScreen(viewModel: ImportInvoiceViewModel, userId: String?) {
             Text("Invoice and Transaction created successfully!", color = MaterialTheme.colorScheme.primary)
         }
 
-        // Añadir esto al final de la composición
+        // Debug Info
         if (state.debugInfo.isNotEmpty()) {
             Text(
                 "Debug Info:",

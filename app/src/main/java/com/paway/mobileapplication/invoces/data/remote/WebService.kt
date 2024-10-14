@@ -23,12 +23,8 @@ interface WebService {
     @GET("/api/invoices")
     suspend fun getAllInvoices(): Response<List<InvoiceResponseDto>>
 
-    @Multipart
     @POST("/api/invoices")
-    suspend fun createInvoice(
-        @Part("invoice") invoice: InvoiceRequestDto,
-        @Part("document") document: String?
-    ): Response<InvoiceResponseDto>
+    suspend fun createInvoice(@Body invoice: InvoiceRequestDto): Response<InvoiceResponseDto>
 
     @GET("/api/invoices/status/{status}")
     suspend fun getInvoicesByStatus(@Path("status") status: String): Response<List<InvoiceResponseDto>>

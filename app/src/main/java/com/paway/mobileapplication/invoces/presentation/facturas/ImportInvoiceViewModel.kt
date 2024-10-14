@@ -100,8 +100,9 @@ class ImportInvoiceViewModel(private val repository: WebServiceRepository) : Vie
             val updatedInvoice = _state.value.invoice.copy(
                 amount = totalAmount,
                 date = Date(),
-                dueDate = Date(),  // Ajusta esto según tus necesidades
-                status = "PENDING"  // O el estado que corresponda
+                dueDate = _state.value.invoice.dueDate ?: Date(),
+                status = _state.value.invoice.status.ifEmpty { "PENDING" },
+                transactionId = null.toString() // Esto se llenará después de crear la transacción
             )
 
             // Actualizar el debugInfo con los datos que se van a enviar
@@ -109,7 +110,7 @@ class ImportInvoiceViewModel(private val repository: WebServiceRepository) : Vie
                 debugInfo = "Enviando: ${updatedInvoice.toString()}\nDocumento: ${_state.value.selectedDocument != null}"
             )
 
-            val invoiceResult = repository.createInvoice(updatedInvoice, _state.value.selectedDocument)
+            val invoiceResult = repository.createInvoice(updatedInvoice)
             when (invoiceResult) {
                 is Resource.Success -> {
                     val createdInvoice = invoiceResult.data
