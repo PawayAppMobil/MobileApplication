@@ -10,6 +10,7 @@ import com.paway.mobileapplication.invoces.domain.model.invoice.Invoice
 import com.paway.mobileapplication.invoces.domain.model.transaction.Transaction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.File
 
 class WebServiceRepository(private val webService: WebService) {
 
@@ -85,9 +86,13 @@ class WebServiceRepository(private val webService: WebService) {
         }
     }
 
-    suspend fun createInvoice(invoice: Invoice): Resource<Invoice> = withContext(Dispatchers.IO) {
+    suspend fun createInvoice(invoice: Invoice, documentFile: File?): Resource<Invoice> = withContext(Dispatchers.IO) {
         try {
-            val response = webService.createInvoice(invoice.toInvoiceRequestDto())
+            val invoiceRequestDto = invoice.toInvoiceRequestDto()
+            // Aquí podrías agregar la lógica para manejar el documento si es necesario
+            // Por ahora, simplemente lo ignoraremos
+
+            val response = webService.createInvoice(invoiceRequestDto)
             if (response.isSuccessful) {
                 response.body()?.let { invoiceDto ->
                     return@withContext Resource.Success(data = invoiceDto.toInvoice())

@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.paway.mobileapplication.invoces.domain.model.invoice.InvoiceItem
 import java.util.*
+import java.io.File
 
 @Composable
 fun ImportInvoiceScreen(viewModel: ImportInvoiceViewModel, userId: String?) {
@@ -68,7 +69,7 @@ fun ImportInvoiceScreen(viewModel: ImportInvoiceViewModel, userId: String?) {
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
-            onClick = { viewModel.createInvoiceAndTransaction() },
+            onClick = { viewModel.createInvoiceAndTransaction(null) }, // Pasamos null porque no estamos usando File directamente
             modifier = Modifier.align(Alignment.End)
         ) {
             Text("Create Invoice and Transaction")

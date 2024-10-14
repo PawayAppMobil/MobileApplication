@@ -1,5 +1,6 @@
 package com.paway.mobileapplication.invoces.presentation.facturas
 
+import android.util.Base64
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -10,8 +11,8 @@ import com.paway.mobileapplication.invoces.domain.model.invoice.Invoice
 import com.paway.mobileapplication.invoces.domain.model.invoice.InvoiceItem
 import com.paway.mobileapplication.invoces.domain.model.transaction.Transaction
 import kotlinx.coroutines.launch
+import java.io.File
 import java.util.*
-import java.util.Base64
 
 data class ImportInvoiceState(
     val invoice: Invoice = Invoice(),
@@ -51,7 +52,7 @@ class ImportInvoiceViewModel(private val repository: WebServiceRepository) : Vie
             date = date,
             dueDate = dueDate,
             status = status,
-            document = document?.let { listOf(Base64.getEncoder().encodeToString(it)) }
+            document = document
         )
         _state.value = _state.value.copy(selectedDocument = document)
     }
@@ -64,7 +65,7 @@ class ImportInvoiceViewModel(private val repository: WebServiceRepository) : Vie
         transactionId: String? = null,
         userId: String? = null,
         dueDate: Date? = null,
-        document: List<String>? = null
+        document: ByteArray? = null
     ) {
         _state.value = _state.value.copy(
             invoice = _state.value.invoice.copy(
@@ -80,11 +81,11 @@ class ImportInvoiceViewModel(private val repository: WebServiceRepository) : Vie
         )
     }
 
-    fun createInvoiceAndTransaction() {
+    fun createInvoiceAndTransaction(documentFile: File?) {
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true, error = null, success = false)
 
-            val invoiceResult = repository.createInvoice(_state.value.invoice)
+            val invoiceResult = repository.createInvoice(_state.value.invoice, documentFile)
             when (invoiceResult) {
                 is Resource.Success -> {
                     val createdInvoice = invoiceResult.data

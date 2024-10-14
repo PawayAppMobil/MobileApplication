@@ -12,6 +12,9 @@ import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
+import retrofit2.http.Headers
+import retrofit2.http.Multipart
+import retrofit2.http.Part
 
 interface WebService {
     @GET("/api/invoices/{id}")
@@ -30,6 +33,7 @@ interface WebService {
     suspend fun getAllInvoices(): Response<List<InvoiceResponseDto>>
 
     @POST("/api/invoices")
+    @Headers("Content-Type: application/json")
     suspend fun createInvoice(@Body invoice: InvoiceRequestDto): Response<InvoiceResponseDto>
 
     @GET("/api/invoices/status/{status}")

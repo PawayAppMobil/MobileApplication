@@ -1,5 +1,6 @@
 package com.paway.mobileapplication.invoces.domain.model.invoice
 
+import InvoiceDTO
 import java.util.Date
 
 data class Invoice(
@@ -11,5 +12,15 @@ data class Invoice(
     val transactionId: String = "",
     val userId: String = "",
     val dueDate: Date = Date(),
-    val document: List<String> = emptyList() // Cambiado a List<String>
-)
+    val document: ByteArray? = null
+) {
+    fun toInvoiceDTO() = InvoiceDTO(
+        date = date,
+        amount = amount,
+        status = status,
+        items = items,
+        transactionId = transactionId,
+        userId = userId,
+        dueDate = dueDate
+    )
+}

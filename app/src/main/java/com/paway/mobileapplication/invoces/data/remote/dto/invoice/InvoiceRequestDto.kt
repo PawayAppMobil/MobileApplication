@@ -3,6 +3,7 @@ package com.paway.mobileapplication.invoces.data.remote.dto.invoice
 import com.paway.mobileapplication.invoces.domain.model.invoice.Invoice
 import com.paway.mobileapplication.invoces.domain.model.invoice.InvoiceItem
 import java.util.Date
+import android.util.Base64
 
 data class InvoiceRequestDto(
     val date: Date,
@@ -12,7 +13,7 @@ data class InvoiceRequestDto(
     val transactionId: String,
     val userId: String,
     val dueDate: Date,
-    val document: List<String>
+    val document: String? // Cambiado a String? para representar el documento en base64
 )
 
 fun Invoice.toInvoiceRequestDto() = InvoiceRequestDto(
@@ -23,7 +24,7 @@ fun Invoice.toInvoiceRequestDto() = InvoiceRequestDto(
     transactionId = transactionId,
     userId = userId,
     dueDate = dueDate,
-    document = document
+    document = document?.let { Base64.encodeToString(it, Base64.DEFAULT) }
 )
 
 fun InvoiceItem.toInvoiceItemDto() = InvoiceItemDto(
