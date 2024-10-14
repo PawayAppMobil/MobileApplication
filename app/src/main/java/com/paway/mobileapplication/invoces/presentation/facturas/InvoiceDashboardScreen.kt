@@ -2,10 +2,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -18,6 +17,9 @@ import com.paway.mobileapplication.invoces.presentation.facturas.InvoiceDashboar
 
 @Composable
 fun InvoiceDashboardScreen(viewModel: InvoiceDashboardViewModel, userId: String?) {
+    // Controla la pantalla actual que se va a mostrar
+    var currentScreen by remember { mutableStateOf("dashboard") }
+
     LaunchedEffect(userId) {
         userId?.let { viewModel.setUserId(it) }
     }
@@ -32,11 +34,22 @@ fun InvoiceDashboardScreen(viewModel: InvoiceDashboardViewModel, userId: String?
     ) {
         Header()
         Spacer(modifier = Modifier.height(16.dp))
-        DashboardButton()
-        Spacer(modifier = Modifier.height(16.dp))
-        PendingInvoicesSection(state)
-        Spacer(modifier = Modifier.height(48.dp))
-        ActionButtons()
+
+        // Cambia el contenido de la pantalla según el estado actual
+        when (currentScreen) {
+            "importarFacturas" -> ImportInvoiceScreen()
+            "verFacturas" -> ViewInvoicesScreen()
+            "programarPagos" -> ProgramPaymentsScreen()
+            "historialPagos" -> PaymentHistoryScreen()
+            "alertas" -> AlertsScreen()
+            else -> {
+                DashboardButton()
+                Spacer(modifier = Modifier.height(16.dp))
+                PendingInvoicesSection(state)
+                Spacer(modifier = Modifier.height(48.dp))
+                ActionButtons(onButtonClick = { screen -> currentScreen = screen })
+            }
+        }
     }
 }
 
@@ -148,33 +161,33 @@ fun InfoCard(text: String, alignment: Alignment) {
 }
 
 @Composable
-fun ActionButtons() {
+fun ActionButtons(onButtonClick: (String) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             ActionButton("IMPORTAR FACTURAS", Modifier.weight(1f)) {
-                // Handle action
+                onButtonClick("importarFacturas")
             }
             Spacer(modifier = Modifier.width(8.dp))
             ActionButton("VER FACTURAS", Modifier.weight(1f)) {
-                // Handle action
+                onButtonClick("verFacturas")
             }
         }
         ActionButton("PROGRAMAR PAGOS", Modifier.fillMaxWidth()) {
-            // Handle action
+            onButtonClick("programarPagos")
         }
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             ActionButton("HISTORIAL DE PAGOS", Modifier.weight(1f)) {
-                // Handle action
+                onButtonClick("historialPagos")
             }
             Spacer(modifier = Modifier.width(8.dp))
             ActionButton("ALERTAS", Modifier.weight(1f)) {
-                // Handle action
+                onButtonClick("alertas")
             }
         }
     }
@@ -190,4 +203,29 @@ fun ActionButton(text: String, modifier: Modifier = Modifier, onClick: () -> Uni
     ) {
         Text(text, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
     }
+}
+
+@Composable
+fun ImportInvoiceScreen() {
+com.paway.mobileapplication.invoces.presentation.facturas.ImportInvoiceScreen()
+}
+
+@Composable
+fun ViewInvoicesScreen() {
+    Text("Pantalla de Ver Facturas")
+}
+
+@Composable
+fun ProgramPaymentsScreen() {
+    Text("Pantalla de Programar Pagos")
+}
+
+@Composable
+fun PaymentHistoryScreen() {
+    Text("Pantalla de Historial de Pagos")
+}
+
+@Composable
+fun AlertsScreen() {
+    Text("Pantalla de Alertas")
 }

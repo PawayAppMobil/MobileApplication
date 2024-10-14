@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun ImportInvoiceScreen(viewModel: ImportInvoiceViewModel) {
+fun ImportInvoiceScreen() {
     var selectedFile by remember { mutableStateOf<String?>(null) }
     var invoiceType by remember { mutableStateOf<String?>(null) }
 
