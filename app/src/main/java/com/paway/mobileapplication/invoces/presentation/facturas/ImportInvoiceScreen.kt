@@ -103,6 +103,20 @@ fun ImportInvoiceScreen(viewModel: ImportInvoiceViewModel, userId: String?) {
         if (state.success) {
             Text("Invoice and Transaction created successfully!", color = MaterialTheme.colorScheme.primary)
         }
+
+        // Añadir esto al final de la composición
+        if (state.debugInfo.isNotEmpty()) {
+            Text(
+                "Debug Info:",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(top = 16.dp)
+            )
+            Text(
+                state.debugInfo,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+        }
     }
 }
 

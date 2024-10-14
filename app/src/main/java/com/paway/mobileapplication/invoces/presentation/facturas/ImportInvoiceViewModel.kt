@@ -17,7 +17,8 @@ data class ImportInvoiceState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val success: Boolean = false,
-    val selectedDocument: ByteArray? = null
+    val selectedDocument: ByteArray? = null,
+    val debugInfo: String = ""
 )
 
 class ImportInvoiceViewModel(private val repository: WebServiceRepository) : ViewModel() {
@@ -87,7 +88,6 @@ class ImportInvoiceViewModel(private val repository: WebServiceRepository) : Vie
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true, error = null, success = false)
 
-            // Asegúrate de que la lista de items no esté vacía
             if (_state.value.invoice.items.isEmpty()) {
                 _state.value = _state.value.copy(
                     isLoading = false,
@@ -96,9 +96,18 @@ class ImportInvoiceViewModel(private val repository: WebServiceRepository) : Vie
                 return@launch
             }
 
-            // Calcula el monto total de la factura
             val totalAmount = _state.value.invoice.items.sumOf { it.quantity * it.unitPrice }
-            val updatedInvoice = _state.value.invoice.copy(amount = totalAmount)
+            val updatedInvoice = _state.value.invoice.copy(
+                amount = totalAmount,
+                date = Date(),
+                dueDate = Date(),  // Ajusta esto según tus necesidades
+                status = "PENDING"  // O el estado que corresponda
+            )
+
+            // Actualizar el debugInfo con los datos que se van a enviar
+            _state.value = _state.value.copy(
+                debugInfo = "Enviando: ${updatedInvoice.toString()}\nDocumento: ${_state.value.selectedDocument != null}"
+            )
 
             val invoiceResult = repository.createInvoice(updatedInvoice, _state.value.selectedDocument)
             when (invoiceResult) {
@@ -121,13 +130,15 @@ class ImportInvoiceViewModel(private val repository: WebServiceRepository) : Vie
                                 _state.value = _state.value.copy(
                                     isLoading = false,
                                     success = true,
-                                    error = null
+                                    error = null,
+                                    debugInfo = _state.value.debugInfo + "\n\nRespuesta: ${createdInvoice.toString()}"
                                 )
                             }
                             is Resource.Error -> {
                                 _state.value = _state.value.copy(
                                     isLoading = false,
-                                    error = "Transaction creation failed: ${transactionResult.message}"
+                                    error = "Transaction creation failed: ${transactionResult.message}",
+                                    debugInfo = _state.value.debugInfo + "\n\nError en transacción: ${transactionResult.message}"
                                 )
                             }
                         }
@@ -136,7 +147,8 @@ class ImportInvoiceViewModel(private val repository: WebServiceRepository) : Vie
                 is Resource.Error -> {
                     _state.value = _state.value.copy(
                         isLoading = false,
-                        error = "Invoice creation failed: ${invoiceResult.message}"
+                        error = "Invoice creation failed: ${invoiceResult.message}",
+                        debugInfo = _state.value.debugInfo + "\n\nError en factura: ${invoiceResult.message}"
                     )
                 }
             }

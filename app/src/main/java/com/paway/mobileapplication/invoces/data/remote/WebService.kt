@@ -5,18 +5,7 @@ import com.paway.mobileapplication.invoces.data.remote.dto.invoice.InvoiceRespon
 import com.paway.mobileapplication.invoces.data.remote.dto.transaction.TransactionRequestDto
 import com.paway.mobileapplication.invoces.data.remote.dto.transaction.TransactionResponseDto
 import retrofit2.Response
-import retrofit2.http.Body
-import retrofit2.http.DELETE
-import retrofit2.http.GET
-import retrofit2.http.POST
-import retrofit2.http.PUT
-import retrofit2.http.Path
-import retrofit2.http.Query
-import retrofit2.http.Headers
-import retrofit2.http.Multipart
-import retrofit2.http.Part
-import okhttp3.MultipartBody
-import okhttp3.RequestBody
+import retrofit2.http.*
 
 interface WebService {
     @GET("/api/invoices/{id}")
