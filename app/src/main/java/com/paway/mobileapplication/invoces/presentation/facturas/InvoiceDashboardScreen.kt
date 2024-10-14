@@ -5,6 +5,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -16,7 +17,11 @@ import com.paway.mobileapplication.invoces.presentation.facturas.DashboardUIStat
 import com.paway.mobileapplication.invoces.presentation.facturas.InvoiceDashboardViewModel
 
 @Composable
-fun InvoiceDashboardScreen(viewModel: InvoiceDashboardViewModel) {
+fun InvoiceDashboardScreen(viewModel: InvoiceDashboardViewModel, userId: String?) {
+    LaunchedEffect(userId) {
+        userId?.let { viewModel.setUserId(it) }
+    }
+
     val state = viewModel.state.value
 
     Column(

@@ -23,26 +23,34 @@ class InvoiceDashboardViewModel(private val repository: WebServiceRepository) : 
     private val _state = mutableStateOf(DashboardUIState())
     val state: State<DashboardUIState> = _state
 
-    private val customerId = "string" // Default customer ID
+    private var userId: String? = null
 
-    init {
+    fun setUserId(id: String) {
+        userId = id
         loadDashboardData()
     }
 
     fun loadDashboardData() {
         _state.value = _state.value.copy(isLoading = true)
         viewModelScope.launch {
-            when (val result = repository.getInvoicesByCustomer(customerId)) {
-                is Resource.Success -> {
-                    val invoices = result.data ?: emptyList()
-                    updateDashboardState(invoices)
+            userId?.let { id ->
+                when (val result = repository.getInvoicesByCustomer(id)) {
+                    is Resource.Success -> {
+                        val invoices = result.data ?: emptyList()
+                        updateDashboardState(invoices)
+                    }
+                    is Resource.Error -> {
+                        _state.value = _state.value.copy(
+                            isLoading = false,
+                            error = result.message ?: "An unexpected error occurred"
+                        )
+                    }
                 }
-                is Resource.Error -> {
-                    _state.value = _state.value.copy(
-                        isLoading = false,
-                        error = result.message ?: "An unexpected error occurred"
-                    )
-                }
+            } ?: run {
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = "User ID not set"
+                )
             }
         }
     }
