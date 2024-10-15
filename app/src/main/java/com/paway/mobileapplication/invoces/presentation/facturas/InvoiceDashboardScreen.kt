@@ -16,7 +16,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.paway.mobileapplication.invoces.data.repository.WebServiceRepository
 import com.paway.mobileapplication.common.RetrofitClient
-
 @Composable
 fun InvoiceDashboardScreen(dashboardViewModel: InvoiceDashboardViewModel, userId: String?) {
     var currentScreen by remember { mutableStateOf("dashboard") }
@@ -28,6 +27,10 @@ fun InvoiceDashboardScreen(dashboardViewModel: InvoiceDashboardViewModel, userId
     val state = dashboardViewModel.state.value
 
     val importInvoiceViewModel = ImportInvoiceViewModel(WebServiceRepository(RetrofitClient.webService))
+    val invoiceListViewModel = InvoiceListViewModel()
+    val schedulePaymentsViewModel = SchedulePaymentsViewModel()
+    val paymentListViewModel = PaymentListViewModel()
+    val discrepancyAlertViewModel = DiscrepancyAlertViewModel()
 
     Column(
         modifier = Modifier
@@ -40,10 +43,10 @@ fun InvoiceDashboardScreen(dashboardViewModel: InvoiceDashboardViewModel, userId
 
         when (currentScreen) {
             "importarFacturas" -> ImportInvoiceScreen(importInvoiceViewModel, userId)
-            "verFacturas" -> ViewInvoicesScreen()
-            "programarPagos" -> ProgramPaymentsScreen()
-            "historialPagos" -> PaymentHistoryScreen()
-            "alertas" -> AlertsScreen()
+            "verFacturas" -> InvoiceListScreen(invoiceListViewModel)
+            "programarPagos" -> SchedulePaymentsScreen(schedulePaymentsViewModel)
+            "historialPagos" -> PaymentListScreen(paymentListViewModel)
+            "alertas" -> DiscrepancyAlertScreen(discrepancyAlertViewModel)
             else -> {
                 DashboardButton()
                 Spacer(modifier = Modifier.height(16.dp))
@@ -54,7 +57,6 @@ fun InvoiceDashboardScreen(dashboardViewModel: InvoiceDashboardViewModel, userId
         }
     }
 }
-
 @Composable
 fun Header() {
     Row(
@@ -194,7 +196,6 @@ fun ActionButtons(onButtonClick: (String) -> Unit) {
         }
     }
 }
-
 @Composable
 fun ActionButton(text: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Button(
@@ -209,22 +210,3 @@ fun ActionButton(text: String, modifier: Modifier = Modifier, onClick: () -> Uni
 
 
 
-@Composable
-fun ViewInvoicesScreen() {
-    Text("Pantalla de Ver Facturas")
-}
-
-@Composable
-fun ProgramPaymentsScreen() {
-    Text("Pantalla de Programar Pagos")
-}
-
-@Composable
-fun PaymentHistoryScreen() {
-    Text("Pantalla de Historial de Pagos")
-}
-
-@Composable
-fun AlertsScreen() {
-    Text("Pantalla de Alertas")
-}
