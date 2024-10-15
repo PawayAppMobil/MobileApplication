@@ -23,7 +23,7 @@ interface WebService {
     @GET("/api/invoices")
     suspend fun getAllInvoices(): Response<List<InvoiceResponseDto>>
 
-    @POST("/api/invoices")
+    @POST("/api/invoices/")
     suspend fun createInvoice(@Body invoice: InvoiceRequestDto): Response<InvoiceResponseDto>
 
     @GET("/api/invoices/status/{status}")

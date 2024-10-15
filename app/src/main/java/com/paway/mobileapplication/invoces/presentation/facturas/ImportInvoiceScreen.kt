@@ -14,11 +14,17 @@ import androidx.compose.ui.unit.dp
 import com.paway.mobileapplication.invoces.domain.model.invoice.InvoiceItem
 import java.util.*
 import java.io.ByteArrayOutputStream
+import java.text.SimpleDateFormat
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 
 @Composable
 fun ImportInvoiceScreen(viewModel: ImportInvoiceViewModel, userId: String?) {
     val state = viewModel.state.value
     val context = LocalContext.current
+
+    var showJsonDialog by remember { mutableStateOf(false) }
+    var jsonContent by remember { mutableStateOf("") }
 
     LaunchedEffect(userId) {
         userId?.let { viewModel.setUserId(it) }
@@ -62,10 +68,15 @@ fun ImportInvoiceScreen(viewModel: ImportInvoiceViewModel, userId: String?) {
             value = dueDateText,
             onValueChange = { 
                 dueDateText = it
-                // Aquí deberías convertir el texto a Date y actualizar el ViewModel
-                // Por simplicidad, usaremos la fecha actual. En una implementación real,
-                // deberías parsear la fecha ingresada por el usuario.
-                viewModel.updateInvoiceDetails(dueDate = Date())
+                try {
+                    val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                    val date = sdf.parse(it)
+                    date?.let { parsedDate ->
+                        viewModel.updateInvoiceDetails(dueDate = parsedDate)
+                    }
+                } catch (e: Exception) {
+                    // Handle parsing error
+                }
             },
             label = { Text("Due Date (YYYY-MM-DD)") },
             modifier = Modifier.fillMaxWidth()
@@ -100,11 +111,27 @@ fun ImportInvoiceScreen(viewModel: ImportInvoiceViewModel, userId: String?) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Button(
-            onClick = { viewModel.createInvoiceAndTransaction() },
-            modifier = Modifier.align(Alignment.End)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text("Create Invoice and Transaction")
+            Button(
+                onClick = { viewModel.createInvoiceAndTransaction() },
+                modifier = Modifier.weight(1f)
+            ) {
+                Text("Create Invoice and Transaction")
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Button(
+                onClick = {
+                    val gson = GsonBuilder().setPrettyPrinting().create()
+                    jsonContent = gson.toJson(state.invoice)
+                    showJsonDialog = true
+                },
+                modifier = Modifier.weight(1f)
+            ) {
+                Text("Show JSON")
+            }
         }
 
         if (state.isLoading) {
@@ -132,6 +159,19 @@ fun ImportInvoiceScreen(viewModel: ImportInvoiceViewModel, userId: String?) {
                 modifier = Modifier.padding(top = 8.dp)
             )
         }
+    }
+
+    if (showJsonDialog) {
+        AlertDialog(
+            onDismissRequest = { showJsonDialog = false },
+            title = { Text("JSON Preview") },
+            text = { Text(jsonContent) },
+            confirmButton = {
+                Button(onClick = { showJsonDialog = false }) {
+                    Text("Close")
+                }
+            }
+        )
     }
 }
 
