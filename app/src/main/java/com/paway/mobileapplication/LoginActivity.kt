@@ -29,37 +29,47 @@ class LoginActivity : ComponentActivity() {
             val password = binding.password.text.toString()
 
             userViewModel.login(username, password) { response ->
-                response.body()?.let { loginResponse ->
-                    val message = loginResponse.message
+                if (response.isSuccessful) {
+                    response.body()?.let { loginResponse ->
+                        val message = loginResponse.message
 
-                    if (message == "Login successful") {
-                        // Fetch user ID in a coroutine
-                        GlobalScope.launch {
-                            userViewModel.getUserId(username)
+                        if (message == "Login successful") {
+                            // Obtener el ID de usuario en una coroutine
+                            GlobalScope.launch {
+                                userViewModel.getUserId(username)
 
-                            // Wait for the userId to be updated
-                            val userId = userViewModel.userId.value
+                                // Esperar a que se actualice userId
+                                val userId = userViewModel.userId.value
 
-                            if (userId != null) {
-                                // Create the Intent to start MainActivitySelector
-                                val intent = Intent(this@LoginActivity, MainActivitySelector::class.java).apply {
-                                    putExtra("USER_ID", userId)
-                                }
-                                startActivity(intent)
-                                finish()
-                            } else {
-                                runOnUiThread {
-                                    Toast.makeText(this@LoginActivity, "Failed to retrieve user ID", Toast.LENGTH_SHORT).show()
+                                if (userId != null) {
+                                    // Crear el Intent para iniciar MainActivitySelector
+                                    val intent = Intent(this@LoginActivity, MainActivitySelector::class.java).apply {
+                                        putExtra("USER_ID", userId)
+                                    }
+                                    startActivity(intent)
+                                    finish()
+                                } else {
+                                    runOnUiThread {
+                                        Toast.makeText(this@LoginActivity, "Failed to retrieve user ID", Toast.LENGTH_SHORT).show()
+                                    }
                                 }
                             }
+                        } else {
+                            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
                         }
-                    } else {
-                        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
                     }
-                } ?: run {
-                    Toast.makeText(this, "Error: ${response.errorBody()?.string() ?: "Unknown error"}", Toast.LENGTH_SHORT).show()
+                } else {
+
+                    val errorMessage = response.errorBody()?.string() ?: "Error desconocido"
+                    Toast.makeText(this, "Error: $errorMessage", Toast.LENGTH_SHORT).show()
                 }
             }
         }
+
+        binding.registerPageButton.setOnClickListener {
+            val intent = Intent(this, RegisterActivity::class.java)
+            startActivity(intent)
+        }
+
     }
 }

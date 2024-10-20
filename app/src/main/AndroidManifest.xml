@@ -29,5 +29,7 @@
             android:name="com.paway.mobileapplication.MainActivitySelector"
             android:exported="true" />
 
+        <activity android:name="com.paway.mobileapplication.RegisterActivity"      android:exported="true" />
+
     </application>
 </manifest>
