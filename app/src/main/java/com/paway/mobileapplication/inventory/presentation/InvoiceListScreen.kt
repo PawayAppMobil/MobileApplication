@@ -6,15 +6,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.paway.mobileapplication.inventory.common.Constants
-import com.paway.mobileapplication.inventory.data.remote.InvoiceService
-import com.paway.mobileapplication.inventory.data.repository.InvoiceRepository
 import com.paway.mobileapplication.inventory.domain.Invoice
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 
 @Composable
 fun InvoiceListScreen(viewModel: InvoiceListViewModel, modifier: Modifier = Modifier) {
@@ -73,35 +67,24 @@ fun InvoiceListScreen(viewModel: InvoiceListViewModel, modifier: Modifier = Modi
             } else {
                 statePagar.data?.let { invoices: List<Invoice> ->
                     LazyColumn {
+                        /*
                         items(invoices) { invoice ->
-                            Card(modifier = Modifier.padding(4.dp)) {
-                                Column {
-                                    Text(
-                                        modifier = Modifier.padding(4.dp),
-                                        text = "Invoice ID: ${invoice.id}",
-                                        fontSize = 20.sp
-                                    )
-                                    Text(
-                                        modifier = Modifier.padding(4.dp),
-                                        text = "Amount: ${invoice.amount}"
-                                    )
-                                    Text(
-                                        modifier = Modifier.padding(4.dp),
-                                        text = "Status: ${invoice.status}"
-                                    )
-                                }
-                            }
+                            Text("Invoice ID: ${invoice.id}")
+                            Text("Amount: ${invoice.amount}")
+                            // Mostrar otros detalles de la factura aquí
                         }
+
+                         */
                     }
                     // Mostrar la suma de las cantidades y el monto total
                     Text(
                         modifier = Modifier.padding(4.dp),
-                        text = "Total Quantity for cobrar: $totalQuantityPagar",
+                        text = "Total Quantity for pagar: $totalQuantityPagar",
                         fontSize = 20.sp
                     )
                     Text(
                         modifier = Modifier.padding(4.dp),
-                        text = "Total Amount for cobrar: $totalAmountPagar",
+                        text = "Total Amount for pagar: $totalAmountPagar",
                         fontSize = 20.sp
                     )
                 }
@@ -125,51 +108,24 @@ fun InvoiceListScreen(viewModel: InvoiceListViewModel, modifier: Modifier = Modi
                 statePagado.data?.let { invoices: List<Invoice> ->
                     LazyColumn {
                         items(invoices) { invoice ->
-                            Card(modifier = Modifier.padding(4.dp)) {
-                                Column {
-                                    Text(
-                                        modifier = Modifier.padding(4.dp),
-                                        text = "Invoice ID: ${invoice.id}",
-                                        fontSize = 20.sp
-                                    )
-                                    Text(
-                                        modifier = Modifier.padding(4.dp),
-                                        text = "Amount: ${invoice.amount}"
-                                    )
-                                    Text(
-                                        modifier = Modifier.padding(4.dp),
-                                        text = "Status: ${invoice.status}"
-                                    )
-                                }
-                            }
+                            Text("Invoice ID: ${invoice.id}")
+                            Text("Amount: ${invoice.amount}")
+                            // Mostrar otros detalles de la factura aquí
                         }
                     }
                     // Mostrar la suma de las cantidades y el monto total
                     Text(
                         modifier = Modifier.padding(4.dp),
-                        text = "Total Quantity for pagar: $totalQuantityPagado",
+                        text = "Total Quantity for pagado: $totalQuantityPagado",
                         fontSize = 20.sp
                     )
                     Text(
                         modifier = Modifier.padding(4.dp),
-                        text = "Total Amount for pagar: $totalAmountPagado",
+                        text = "Total Amount for pagado: $totalAmountPagado",
                         fontSize = 20.sp
                     )
                 }
             }
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun InvoiceListScreenPreview() {
-    val retrofit = Retrofit.Builder()
-        .baseUrl(Constants.BASE_URL)
-        .addConverterFactory(GsonConverterFactory.create())
-        .build()
-    val service = retrofit.create(InvoiceService::class.java)
-    val repository = InvoiceRepository(service)
-    val viewModel = InvoiceListViewModel(repository)
-    InvoiceListScreen(viewModel)
 }

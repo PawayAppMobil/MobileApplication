@@ -3,7 +3,6 @@ package com.paway.mobileapplication.inventory.data.remote
 import retrofit2.Response
 import retrofit2.http.*
 
-
 interface InvoiceService {
 
     @GET("invoices/{id}")

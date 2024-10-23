@@ -10,4 +10,11 @@ data class InvoiceItemDto(
     @SerializedName("unitPrice") val unitPrice: Double,
     @SerializedName("productId") val productId: String
 )
-fun InvoiceItemDto.toItem()= InvoiceItem( id,quantity)
+
+fun InvoiceItemDto.toItem() = InvoiceItem(
+    id = id,
+    description = description,
+    quantity = quantity,
+    unitPrice = unitPrice,
+    productId = productId
+)

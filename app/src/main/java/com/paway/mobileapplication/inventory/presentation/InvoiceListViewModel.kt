@@ -1,7 +1,5 @@
 package com.paway.mobileapplication.inventory.presentation
 
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.paway.mobileapplication.inventory.common.Resource

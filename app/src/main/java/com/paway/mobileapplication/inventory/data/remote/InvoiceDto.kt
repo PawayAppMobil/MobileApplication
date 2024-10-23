@@ -9,9 +9,15 @@ data class InvoiceDto(
     @SerializedName("amount") val amount: Int,
     @SerializedName("status") val status: String,
     @SerializedName("items") val items: List<InvoiceItemDto>,
-    @SerializedName("transactionId") val transactionId: String,
-    @SerializedName("customerId") val customerId: String,
-    @SerializedName("dueDate") val dueDate: String
+    @SerializedName("userId") val userId: String,
+    @SerializedName("document") val document: String
 )
 
-fun InvoiceDto.toInvoice()= Invoice(id, amount, status, items = items.map { it.toItem() })
+fun InvoiceDto.toInvoice() = Invoice(
+    id = id,
+    amount = amount,
+    status = status,
+    items = items.map { it.toItem() },
+    userId = userId,
+    document = document
+)
