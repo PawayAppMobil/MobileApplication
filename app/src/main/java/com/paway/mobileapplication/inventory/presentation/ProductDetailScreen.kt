@@ -1,17 +1,14 @@
 package com.paway.mobileapplication.inventory.presentation
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
-import com.paway.mobileapplication.inventory.domain.Product
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -20,8 +17,14 @@ fun ProductDetailScreen(
     productId: String,
     onBackClick: () -> Unit
 ) {
+    val hasFetched = remember { mutableStateOf(false) }
+
     LaunchedEffect(productId) {
-        viewModel.getProductById(productId)
+        if (!hasFetched.value) {
+            Log.d("ProductDetailScreen", "LaunchedEffect with productId: $productId")
+            viewModel.getProductById(productId)
+            hasFetched.value = true
+        }
     }
 
     val state = viewModel.state.value
@@ -55,47 +58,15 @@ fun ProductDetailScreen(
                 else -> {
                     val product = state.data
                     if (product != null) {
-                        ProductDetailContent(product)
+                        Text("Product ID: ${product.id}")
+                        Text("Product Name: ${product.name}")
+                        Text("Stock: ${product.stock}")
+                        // Add other product details here
                     } else {
                         Text("No product data available")
                     }
                 }
             }
-        }
-    }
-}
-@Composable
-fun ProductDetailContent(product: Product) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = product.name,
-                style = MaterialTheme.typography.headlineMedium
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Stock: ${product.stock}",
-                style = MaterialTheme.typography.bodyLarge
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Icon(
-                imageVector = Icons.Filled.Star,
-                contentDescription = "Favorite",
-                tint = if (product.isFavorite) Color.Red else Color.Gray,
-                modifier = Modifier.size(48.dp)
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "Product ID: ${product.id}",
-                style = MaterialTheme.typography.bodyMedium
-            )
         }
     }
 }

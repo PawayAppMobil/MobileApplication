@@ -8,7 +8,7 @@ interface ProductService {
     @GET("products")
     suspend fun searchProduct(@Query("productName") name: String): Response<List<ProductDto>>
 
-    @GET("Products/{id}")
+    @GET("products/{id}")
     suspend fun getProductById(@Path("id") id: String): Response<ProductDto>
 
 }

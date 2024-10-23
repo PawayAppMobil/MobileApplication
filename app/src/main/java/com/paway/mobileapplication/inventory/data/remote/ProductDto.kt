@@ -5,7 +5,7 @@ import com.paway.mobileapplication.inventory.domain.Product
 data class ProductDto(
     val id: String,
     val description: String,
-    val price: Int,
+    val price: Double,
     val productName: String,
     val stock: Int
 )

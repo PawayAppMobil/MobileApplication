@@ -1,5 +1,6 @@
 package com.paway.mobileapplication.inventory.data.repository
 
+import android.util.Log
 import com.paway.mobileapplication.inventory.common.Resource
 import com.paway.mobileapplication.inventory.data.local.ProductDao
 import com.paway.mobileapplication.inventory.data.local.ProductEntity
@@ -66,15 +67,19 @@ class ProductRepository(
     }
 
     suspend fun getProductById(id: String): Resource<Product> = withContext(Dispatchers.IO) {
-        val response = productService.getProductById(id)
-        if (response.isSuccessful) {
-            response.body()?.let { productDto ->
-                val product = productDto.toProduct()
-                product.isFavorite = isFavorite(product.id)
-                return@withContext Resource.Success(data = product)
+        try {
+            val response = productService.getProductById(id)
+            if (response.isSuccessful) {
+                response.body()?.let { productDto ->
+                    val product = productDto.toProduct()
+                    return@withContext Resource.Success(data = product)
+                }
+                return@withContext Resource.Error(message = "Product not found")
             }
-            return@withContext Resource.Error(message = "Product not found")
+            return@withContext Resource.Error(message = response.message())
+        } catch (e: Exception) {
+            Log.e("ProductRepository", "Exception fetching product: ${e.message}", e)
+            return@withContext Resource.Error(message = e.message ?: "An unknown error occurred")
         }
-        return@withContext Resource.Error(message = response.message())
     }
 }

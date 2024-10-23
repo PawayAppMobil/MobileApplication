@@ -1,5 +1,6 @@
 package com.paway.mobileapplication.inventory.presentation
 
+import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -18,13 +19,16 @@ class ProductDetailViewModel(
     val state: State<UIState<Product>> = _state
 
     fun getProductById(id: String) {
+        Log.d("ProductDetailViewModel", "Fetching product with id: $id")
         _state.value = UIState(isLoading = true)
         viewModelScope.launch {
             when (val result = getProductByIdUseCase(id)) {
                 is Resource.Success -> {
+                    Log.d("ProductDetailViewModel", "Product fetched successfully: ${result.data}")
                     _state.value = UIState(data = result.data)
                 }
                 is Resource.Error -> {
+                    Log.e("ProductDetailViewModel", "Error fetching product: ${result.message}")
                     _state.value = UIState(error = result.message ?: "An error occurred")
                 }
             }
