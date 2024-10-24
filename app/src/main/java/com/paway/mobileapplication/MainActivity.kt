@@ -1,7 +1,6 @@
 package com.paway.mobileapplication
-
 import InvoiceDashboardScreen
-import com.paway.mobileapplication.data.repository.report.ReportRepository
+import com.paway.mobileapplication.reports.data.repository.report.ReportRepository
 import ReportScreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -34,9 +33,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.paway.mobileapplication.common.RetrofitClient
-import com.paway.mobileapplication.data.repository.WebServiceRepository
-import com.paway.mobileapplication.presentation.facturas.InvoiceDashboardViewModel
-import com.paway.mobileapplication.presentation.reports.ReportViewModel
+import com.paway.mobileapplication.reports.data.repository.WebServiceRepository
+import com.paway.mobileapplication.reports.presentation.facturas.InvoiceDashboardViewModel
+import com.paway.mobileapplication.reports.presentation.reports.ReportViewModel
 import com.paway.mobileapplication.ui.theme.MobileApplicationTheme
 
 val InvoiceDashboardviewModel = InvoiceDashboardViewModel(WebServiceRepository(RetrofitClient.webService))
