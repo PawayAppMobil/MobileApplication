@@ -1,6 +1,6 @@
 package com.paway.mobileapplication
 
-import InvoiceDashboardScreen
+
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -22,28 +22,27 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.paway.mobileapplication.invoces.data.repository.WebServiceRepository
 import com.paway.mobileapplication.common.RetrofitClient
+import com.paway.mobileapplication.invoces.presentation.facturas.InvoiceDashboardScreen
 import com.paway.mobileapplication.invoces.presentation.facturas.InvoiceDashboardViewModel
 import com.paway.mobileapplication.ui.theme.MobileApplicationTheme
-val InvoiceDashboardviewModel = InvoiceDashboardViewModel(WebServiceRepository(RetrofitClient.webService))
 
 class MainActivitySelector : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val userId = intent.getStringExtra("USER_ID")
-        // Obtener el userId del Intent
 
+        val viewModel = InvoiceDashboardViewModel(WebServiceRepository(RetrofitClient.webService))
 
         setContent {
             MobileApplicationTheme {
-                MainScreen(userId) // Pasar el userId a MainScreen
+                MainScreen(userId, viewModel)
             }
         }
     }
 }
 
-
 @Composable
-fun MainScreen(userId: String?) {
+fun MainScreen(userId: String?, viewModel: InvoiceDashboardViewModel) {
     var selectedScreen by remember { mutableStateOf("home") }
 
     Column(
@@ -59,7 +58,7 @@ fun MainScreen(userId: String?) {
             when (selectedScreen) {
                 "home" -> HomeScreen(userId)
                 "inventory" -> InventoryScreen()
-                "invoice" -> InvoiceScreen()
+                "invoice" -> InvoiceDashboardScreen(viewModel, userId)
                 "balance" -> BalanceScreen()
             }
         }
@@ -78,11 +77,6 @@ fun HomeScreen(userId: String?) {
 @Composable
 fun InventoryScreen() {
     Text(text = "Pantalla de Inventario")
-}
-
-@Composable
-fun InvoiceScreen() {
-    InvoiceDashboardScreen(InvoiceDashboardviewModel)
 }
 
 @Composable
@@ -146,10 +140,3 @@ fun BottomNavItem(icon: ImageVector, label: String, isSelected: Boolean, onClick
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun MainScreenPreview() {
-    MobileApplicationTheme {
-        MainScreen(userId = "Test User")
-    }
-}
