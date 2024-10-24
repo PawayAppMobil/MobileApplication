@@ -1,23 +1,12 @@
-<<<<<<<< HEAD:app/src/main/java/com/paway/mobileapplication/invoces/data/repository/WebServiceRepository.kt
 package com.paway.mobileapplication.invoces.data.repository
 
-import com.paway.mobileapplication.common.Resource
+import com.paway.mobileapplication.inventory.common.Resource
 import com.paway.mobileapplication.invoces.data.remote.WebService
 import com.paway.mobileapplication.invoces.data.remote.dto.invoice.toInvoice
 import com.paway.mobileapplication.invoces.data.remote.dto.invoice.toInvoiceRequestDto
 import com.paway.mobileapplication.invoces.domain.model.invoice.Invoice
-========
-package com.paway.mobileapplication.reports.data.repository
-
-import com.paway.mobileapplication.common.Resource
-import com.paway.mobileapplication.reports.data.remote.WebService
-import com.paway.mobileapplication.reports.data.remote.dto.invoice.toInvoice
-import com.paway.mobileapplication.reports.data.remote.dto.invoice.toInvoiceRequestDto
-import com.paway.mobileapplication.reports.domain.model.invoice.Invoice
->>>>>>>> origin/feature-reportes:app/src/main/java/com/paway/mobileapplication/reports/data/repository/WebServiceRepository.kt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import android.util.Base64
 import com.paway.mobileapplication.invoces.data.remote.dto.transaction.toTransaction
 import com.paway.mobileapplication.invoces.data.remote.dto.transaction.toTransactionRequestDto
 import com.paway.mobileapplication.invoces.domain.model.transaction.Transaction

@@ -1,5 +1,7 @@
 package com.paway.mobileapplication.inventory.domain
 
+import com.paway.mobileapplication.reports.domain.model.invoice.InvoiceItem
+
 data class Invoice(
     val id: String,
     val amount: Int,

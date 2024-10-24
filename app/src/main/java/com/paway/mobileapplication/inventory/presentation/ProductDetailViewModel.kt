@@ -31,6 +31,10 @@ class ProductDetailViewModel(
                     Log.e("ProductDetailViewModel", "Error fetching product: ${result.message}")
                     _state.value = UIState(error = result.message ?: "An error occurred")
                 }
+                else -> {
+                    Log.e("ProductDetailViewModel", "Unexpected result: $result")
+                    _state.value = UIState(error = "Unexpected error")
+                }
             }
         }
     }

@@ -14,14 +14,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-<<<<<<<< HEAD:app/src/main/java/com/paway/mobileapplication/invoces/presentation/facturas/InvoiceDashboardScreen.kt
 import com.paway.mobileapplication.invoces.data.repository.WebServiceRepository
-import com.paway.mobileapplication.common.RetrofitClient
-========
-import com.paway.mobileapplication.reports.presentation.facturas.DashboardUIState
-import com.paway.mobileapplication.reports.presentation.facturas.InvoiceDashboardViewModel
-
->>>>>>>> origin/feature-reportes:app/src/main/java/com/paway/mobileapplication/reports/presentation/facturas/InvoiceDashboardScreen.kt
+import com.paway.mobileapplication.inventory.common.RetrofitClient
 @Composable
 fun InvoiceDashboardScreen(dashboardViewModel: InvoiceDashboardViewModel, userId: String?) {
     var currentScreen by remember { mutableStateOf("dashboard") }

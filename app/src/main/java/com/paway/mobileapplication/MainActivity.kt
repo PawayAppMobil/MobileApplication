@@ -1,6 +1,13 @@
 package com.paway.mobileapplication
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.*
+import androidx.compose.runtime.Composable
 
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import com.paway.mobileapplication.R
+import ReportScreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -18,31 +25,51 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.room.Room
+import com.paway.mobileapplication.common.Constants
 import com.paway.mobileapplication.invoces.data.repository.WebServiceRepository
 import com.paway.mobileapplication.common.RetrofitClient
+import com.paway.mobileapplication.inventory.data.local.AppDataBase
+import com.paway.mobileapplication.inventory.data.remote.ProductService
+import com.paway.mobileapplication.inventory.data.repository.ProductRepository
+import com.paway.mobileapplication.inventory.domain.GetProductByIdUseCase
+import com.paway.mobileapplication.inventory.presentation.ProductDetailScreen
+import com.paway.mobileapplication.inventory.presentation.ProductDetailViewModel
+import com.paway.mobileapplication.inventory.presentation.ProductListScreen
+import com.paway.mobileapplication.inventory.presentation.ProductListViewModel
 import com.paway.mobileapplication.invoces.presentation.facturas.InvoiceDashboardScreen
 import com.paway.mobileapplication.invoces.presentation.facturas.InvoiceDashboardViewModel
+import com.paway.mobileapplication.reports.data.repository.report.ReportRepository
+import com.paway.mobileapplication.reports.presentation.reports.ReportViewModel
 import com.paway.mobileapplication.ui.theme.MobileApplicationTheme
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+
+val InvoiceDashboardviewModel = InvoiceDashboardViewModel(WebServiceRepository(RetrofitClient.webService))
+val ReportViewModel = ReportViewModel(ReportRepository(RetrofitClient.reportService))
 
 class MainActivitySelector : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val userId = intent.getStringExtra("USER_ID")
-
-        val viewModel = InvoiceDashboardViewModel(WebServiceRepository(RetrofitClient.webService))
+        // Obtener el userId del Intent
 
         setContent {
             MobileApplicationTheme {
-                MainScreen(userId, viewModel)
+                MainScreen(userId) // Pasar el userId a MainScreen
             }
         }
     }
 }
 
+
 @Composable
-fun MainScreen(userId: String?, viewModel: InvoiceDashboardViewModel) {
+fun MainScreen(userId: String?) {
     var selectedScreen by remember { mutableStateOf("home") }
 
     Column(
@@ -58,7 +85,7 @@ fun MainScreen(userId: String?, viewModel: InvoiceDashboardViewModel) {
             when (selectedScreen) {
                 "home" -> HomeScreen(userId)
                 "inventory" -> InventoryScreen()
-                "invoice" -> InvoiceDashboardScreen(viewModel, userId)
+                "invoice" -> InvoiceScreen(userId)
                 "balance" -> BalanceScreen()
             }
         }
@@ -71,19 +98,70 @@ fun MainScreen(userId: String?, viewModel: InvoiceDashboardViewModel) {
 
 @Composable
 fun HomeScreen(userId: String?) {
-    Text(text = userId ?: "Pantalla de Inicio")
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.home),
+            contentDescription = "Home Image",
+            modifier = Modifier.size(200.dp)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "Bienvenido a la mejor app financiera que usarás",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.Black
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = userId ?: "Pantalla de Inicio",
+            fontSize = 16.sp,
+            color = Color.Gray
+        )
+    }
 }
 
 @Composable
 fun InventoryScreen() {
-    Text(text = "Pantalla de Inventario")
+    val context = LocalContext.current
+    val database = Room.databaseBuilder(
+        context,
+        AppDataBase::class.java, "product-database"
+    ).build()
+
+    val retrofit = Retrofit.Builder()
+        .baseUrl(com.paway.mobileapplication.inventory.common.Constants.BASE_URL)
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+
+    val productService = retrofit.create(ProductService::class.java)
+    val productDao = database.getProductDao()
+    val productRepository = ProductRepository(productService, productDao)
+    val getProductByIdUseCase = GetProductByIdUseCase(productRepository)
+
+    val productListViewModel = ProductListViewModel(productRepository)
+    val productDetailViewModel = ProductDetailViewModel(getProductByIdUseCase)
+
+    AppContent(productListViewModel, productDetailViewModel)
+}
+
+@Composable
+fun InvoiceScreen(userId: String?) {
+    InvoiceDashboardScreen(
+        InvoiceDashboardviewModel,
+        userId = userId ?: ""
+    )
 }
 
 @Composable
 fun BalanceScreen() {
-    Text(text = "Pantalla de Balance General")
+    ReportScreen(reportViewModel = ReportViewModel)
 }
-
 @Composable
 fun BottomNavigationBar(selectedScreen: String, onItemSelected: (String) -> Unit) {
     Row(
@@ -139,4 +217,42 @@ fun BottomNavItem(icon: ImageVector, label: String, isSelected: Boolean, onClick
         )
     }
 }
+@Composable
+fun AppContent(
+    productListViewModel: ProductListViewModel,
+    productDetailViewModel: ProductDetailViewModel
+) {
+    val (currentScreen, setCurrentScreen) = remember { mutableStateOf<Screen>(Screen.ProductList) }
 
+    when (currentScreen) {
+        is Screen.ProductList -> {
+            ProductListScreen(
+                viewModel = productListViewModel,
+                onProductClick = { productId ->
+                    productDetailViewModel.getProductById(productId)
+                    setCurrentScreen(Screen.ProductDetail(productId))
+                }
+            )
+        }
+        is Screen.ProductDetail -> {
+            ProductDetailScreen(
+                viewModel = productDetailViewModel,
+                productId = (currentScreen as Screen.ProductDetail).productId,
+                onBackClick = {
+                    setCurrentScreen(Screen.ProductList)
+                }
+            )
+        }
+    }
+}
+sealed class Screen {
+    object ProductList : Screen()
+    data class ProductDetail(val productId: String) : Screen()
+}
+@Preview(showBackground = true)
+@Composable
+fun MainScreenPreview() {
+    MobileApplicationTheme {
+        MainScreen(userId = "Test User")
+    }
+}

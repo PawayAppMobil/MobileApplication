@@ -4,7 +4,7 @@ import com.paway.mobileapplication.reports.data.repository.report.ReportReposito
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.paway.mobileapplication.common.Resource
+import com.paway.mobileapplication.inventory.common.Resource
 import com.paway.mobileapplication.reports.data.remote.dto.report.ReportRequestDto
 import com.paway.mobileapplication.reports.data.remote.dto.report.TransactionDto
 import com.paway.mobileapplication.reports.domain.model.report.Report

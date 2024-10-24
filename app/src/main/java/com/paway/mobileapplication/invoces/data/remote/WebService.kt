@@ -1,16 +1,9 @@
-<<<<<<<< HEAD:app/src/main/java/com/paway/mobileapplication/invoces/data/remote/WebService.kt
 package com.paway.mobileapplication.invoces.data.remote
 
 import com.paway.mobileapplication.invoces.data.remote.dto.invoice.InvoiceRequestDto
 import com.paway.mobileapplication.invoces.data.remote.dto.invoice.InvoiceResponseDto
 import com.paway.mobileapplication.invoces.data.remote.dto.transaction.TransactionRequestDto
 import com.paway.mobileapplication.invoces.data.remote.dto.transaction.TransactionResponseDto
-========
-package com.paway.mobileapplication.reports.data.remote
-
-import com.paway.mobileapplication.reports.data.remote.dto.invoice.InvoiceRequestDto
-import com.paway.mobileapplication.reports.data.remote.dto.invoice.InvoiceResponseDto
->>>>>>>> origin/feature-reportes:app/src/main/java/com/paway/mobileapplication/reports/data/remote/WebService.kt
 import retrofit2.Response
 import retrofit2.http.*
 

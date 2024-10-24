@@ -1,21 +1,12 @@
-<<<<<<<< HEAD:app/src/main/java/com/paway/mobileapplication/invoces/presentation/facturas/InvoiceDashboardScreenViewModel.kt
 package com.paway.mobileapplication.invoces.presentation.facturas
-========
-package com.paway.mobileapplication.reports.presentation.facturas
->>>>>>>> origin/feature-reportes:app/src/main/java/com/paway/mobileapplication/reports/presentation/facturas/InvoiceDashboardScreenViewModel.kt
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.paway.mobileapplication.common.Resource
-<<<<<<<< HEAD:app/src/main/java/com/paway/mobileapplication/invoces/presentation/facturas/InvoiceDashboardScreenViewModel.kt
+import com.paway.mobileapplication.inventory.common.Resource
 import com.paway.mobileapplication.invoces.data.repository.WebServiceRepository
 import com.paway.mobileapplication.invoces.domain.model.invoice.Invoice
-========
-import com.paway.mobileapplication.reports.data.repository.WebServiceRepository
-import com.paway.mobileapplication.reports.domain.model.invoice.Invoice
->>>>>>>> origin/feature-reportes:app/src/main/java/com/paway/mobileapplication/reports/presentation/facturas/InvoiceDashboardScreenViewModel.kt
 import kotlinx.coroutines.launch
 import java.util.*
 

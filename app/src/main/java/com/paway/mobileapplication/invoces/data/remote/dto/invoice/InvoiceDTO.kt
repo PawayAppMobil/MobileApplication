@@ -1,6 +1,7 @@
+package com.paway.mobileapplication.invoces.data.remote.dto.invoice
+
 import com.paway.mobileapplication.invoces.domain.model.invoice.InvoiceItem
 import java.util.Date
-
 data class InvoiceDTO(
     val date: Date,
     val amount: Double,

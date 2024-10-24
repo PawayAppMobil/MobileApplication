@@ -1,14 +1,7 @@
-<<<<<<<< HEAD:app/src/main/java/com/paway/mobileapplication/invoces/data/remote/dto/invoice/InvoiceResponseDto.kt
 package com.paway.mobileapplication.invoces.data.remote.dto.invoice
 
 import com.paway.mobileapplication.invoces.domain.model.invoice.Invoice
 import com.paway.mobileapplication.invoces.domain.model.invoice.InvoiceItem
-========
-package com.paway.mobileapplication.reports.data.remote.dto.invoice
-
-import com.paway.mobileapplication.reports.domain.model.invoice.Invoice
-import com.paway.mobileapplication.reports.domain.model.invoice.InvoiceItem
->>>>>>>> origin/feature-reportes:app/src/main/java/com/paway/mobileapplication/reports/data/remote/dto/invoice/InvoiceResponseDto.kt
 import java.util.Date
 import android.util.Base64
 

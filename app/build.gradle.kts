@@ -39,6 +39,8 @@ android {
     }
     buildFeatures {
         compose = true
+        viewBinding = true
+
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
@@ -51,7 +53,7 @@ android {
 }
 
 dependencies {
-
+    implementation ("com.google.android.material:material:1.9.0")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -66,6 +68,7 @@ dependencies {
     implementation(libs.glide)
     implementation(libs.room.runtime)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.play.services.analytics.impl)
     annotationProcessor(libs.room.compiler)
     ksp(libs.room.compiler)
     implementation(libs.room.ktx)

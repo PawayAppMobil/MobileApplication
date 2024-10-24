@@ -1,4 +1,4 @@
-package com.paway.mobileapplication.inventory.domain
+package com.paway.mobileapplication.invoces.domain.model.invoice
 
 data class InvoiceItem(
     val id: String,

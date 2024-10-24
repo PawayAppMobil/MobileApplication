@@ -9,7 +9,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductDetailScreen(
@@ -17,25 +16,19 @@ fun ProductDetailScreen(
     productId: String,
     onBackClick: () -> Unit
 ) {
-    val hasFetched = remember { mutableStateOf(false) }
+    val state = viewModel.state.value
 
     LaunchedEffect(productId) {
-        if (!hasFetched.value) {
-            Log.d("ProductDetailScreen", "LaunchedEffect with productId: $productId")
-            viewModel.getProductById(productId)
-            hasFetched.value = true
-        }
+        viewModel.getProductById(productId)
     }
-
-    val state = viewModel.state.value
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Product Details") },
+                title = { Text("Detalles del Producto") },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Filled.ArrowBack, contentDescription = "Atrás")
                     }
                 }
             )
@@ -55,16 +48,15 @@ fun ProductDetailScreen(
                 state.error.isNotEmpty() -> {
                     Text(state.error, color = Color.Red)
                 }
-                else -> {
+                state.data != null -> {
                     val product = state.data
-                    if (product != null) {
-                        Text("Product ID: ${product.id}")
-                        Text("Product Name: ${product.name}")
-                        Text("Stock: ${product.stock}")
-                        // Add other product details here
-                    } else {
-                        Text("No product data available")
-                    }
+                    Text("ID del Producto: ${product?.id}")
+                    Text("Nombre del Producto: ${product?.name}")
+                    Text("Stock: ${product?.stock}")
+                    // Agrega otros detalles del producto aquí
+                }
+                else -> {
+                    Text("No hay datos del producto disponibles")
                 }
             }
         }

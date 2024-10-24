@@ -1,9 +1,7 @@
-package com.paway.mobileapplication.common
+package com.paway.mobileapplication.inventory.common
 
 import com.google.gson.GsonBuilder
-import com.paway.mobileapplication.inventory.common.Constants
 import com.paway.mobileapplication.invoces.data.remote.WebService
-import com.paway.mobileapplication.reports.data.remote.ReportService
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
@@ -14,12 +12,5 @@ object RetrofitClient {
             .addConverterFactory(GsonConverterFactory.create(GsonBuilder().create()))
             .build()
             .create(WebService::class.java)
-    }
-    val reportService: ReportService by lazy {
-        Retrofit.Builder()
-            .baseUrl(Constants.BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create(GsonBuilder().create()))
-            .build()
-            .create(ReportService::class.java)
     }
 }
