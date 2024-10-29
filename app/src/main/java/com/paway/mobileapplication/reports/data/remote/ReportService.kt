@@ -5,24 +5,30 @@ import com.paway.mobileapplication.reports.data.remote.dto.report.ReportRequestD
 import com.paway.mobileapplication.reports.data.remote.dto.report.TransactionDto
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface ReportService {
 
-    @POST("/api/report")
+    @POST("/reports")
     suspend fun createReport(@Body reportRequest: ReportRequestDto): Response<ReportDto>
 
-    @POST("/transactions")
-    suspend fun createTransaction(@Body transactionDto: TransactionDto): Response<Unit>
 
-    @GET("/api/report/{userId}")
+    @GET("/reports/user/{userId}")
     suspend fun getReportByUserId(
-        @Query("userId") userId: String,
+        @Path("userId") userId: String
     ): Response<List<ReportDto>>
 
     @GET("/transactions")
     suspend fun getTransactionsByUserId(
     ): Response<List<TransactionDto>>
+
+    @DELETE("/reports/{userId}/{reportId}")
+    suspend fun deleteReport(
+        @Path("userId") userId: String,
+        @Path("reportId") reportId: String
+    ): Response<Unit>
 }
