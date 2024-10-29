@@ -2,9 +2,13 @@ package com.paway.mobileapplication.reports.presentation.reports
 
 import com.paway.mobileapplication.reports.data.repository.report.ReportRepository
 import android.util.Log
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.paway.mobileapplication.common.Resource
+import com.paway.mobileapplication.common.RetrofitClient.reportService
+import com.paway.mobileapplication.reports.data.remote.dto.report.DateRange
+import com.paway.mobileapplication.reports.data.remote.dto.report.ReportDto
 import com.paway.mobileapplication.reports.data.remote.dto.report.ReportRequestDto
 import com.paway.mobileapplication.reports.data.remote.dto.report.TransactionDto
 import com.paway.mobileapplication.reports.domain.model.report.Report
@@ -13,85 +17,55 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class ReportViewModel(
-    private val reportRepository: ReportRepository
-) : ViewModel() {
+class ReportViewModel(private val reportRepository: ReportRepository) : ViewModel() {
 
-    private val _reportFlow = MutableStateFlow<List<Report>>(emptyList())
-    val reportFlow: StateFlow<List<Report>> get() = _reportFlow
-
-    private val _errorFlow = MutableStateFlow<String?>(null)
-    val errorFlow: StateFlow<String?> get() = _errorFlow
-
-    private val _transactionFlow = MutableStateFlow<List<Transaction>>(emptyList())
-    val transactionFlow: StateFlow<List<Transaction>> get() = _transactionFlow
-
+    private val _reportFlow = MutableStateFlow<Resource<List<Report>>>(Resource.Success(emptyList()))
+    val reportFlow: StateFlow<Resource<List<Report>>> get() = _reportFlow
 
     init {
-        getTransactionsByUserId("23") // Cambia el ID por el real del usuario
+        fetchReports("12345678")
     }
 
-
-    fun getReportByUserId(userId: String) {
+    private fun fetchReports(userId: String) {
         viewModelScope.launch {
-            when (val result = reportRepository.getReportByUserId(userId)) {
+            val result = reportRepository.getReportByUserId(userId)
+            _reportFlow.value = result
+        }
+    }
+
+    fun createReport(userId: String, reportType: String, startDate: String, endDate: String) {
+        viewModelScope.launch {
+            val reportRequest = ReportRequestDto(
+                userId = userId,
+                reportType = reportType,
+                dateRange = DateRange(startDate, endDate)
+            )
+            val result = reportRepository.createReport(reportRequest)
+
+            _reportFlow.value = when (result) {
                 is Resource.Success -> {
-                    //  para verificar la respuesta del backend
-                    Log.d("ReportViewModel", "Respuesta del backend: ${result.data}")
-
-
-                    _reportFlow.value = result.data ?: emptyList()
+                    val currentReports = (_reportFlow.value as? Resource.Success)?.data ?: emptyList()
+                    result.data?.let {
+                        Resource.Success(currentReports + it)
+                    } ?: Resource.Error("Error: el reporte no contiene datos.")
                 }
-                is Resource.Error -> {
-
-                    Log.e("ReportViewModel", "Error al obtener reportes: ${result.message}")
-                    _errorFlow.value = result.message
-                }
+                is Resource.Error -> Resource.Error(result.message ?: "Error desconocido")
+                //else -> Resource.Loading()
             }
         }
     }
 
-
-    fun createReport(reportRequest: ReportRequestDto) {
+    fun deleteReport(userId: String, reportId: String) {
         viewModelScope.launch {
-            when (val result = reportRepository.createReport(reportRequest)) {
-                is Resource.Success -> {
-                    Log.d("ReportViewModel", "Reporte creado exitosamente.")
-                }
-                is Resource.Error -> {
-                    _errorFlow.value = result.message
-                }
+            val result = reportRepository.deleteReport(userId, reportId)
+            if (result is Resource.Success) {
+                // Filtra el reporte eliminado de la lista
+                val updatedReports = (_reportFlow.value as? Resource.Success)?.data?.filter { it.id != reportId }
+                _reportFlow.value = Resource.Success(updatedReports ?: emptyList())
+            } else {
+                _reportFlow.value = Resource.Error("Error al eliminar el reporte.")
             }
         }
     }
 
-
-    fun createTransaction(transactionDto: TransactionDto) {
-        viewModelScope.launch {
-            when (val result = reportRepository.createTransaction(transactionDto)) {
-                is Resource.Success -> {
-                    Log.d("ReportViewModel", "Transacción creada exitosamente.")
-                    getReportByUserId(transactionDto.userId)
-                }
-                is Resource.Error -> {
-                    Log.e("ReportViewModel", "Error al crear transacción: ${result.message}")
-                    _errorFlow.value = result.message
-                }
-            }
-        }
-    }
-    fun getTransactionsByUserId(userId: String) {
-        viewModelScope.launch {
-            when (val result = reportRepository.getTransactionsByUserId(userId)) {
-                is Resource.Success -> {
-                    Log.d("ReportViewModel", "Transacciones obtenidas: ${result.data}")
-                    _transactionFlow.value = result.data ?: emptyList()
-                }
-                is Resource.Error -> {
-                    Log.e("ReportViewModel", "Error al obtener transacciones: ${result.message}")
-                    _errorFlow.value = result.message
-                }
-            }
-        }
-    }
 }
