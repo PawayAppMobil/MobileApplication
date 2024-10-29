@@ -97,7 +97,7 @@ fun InvoiceScreen() {
 
 @Composable
 fun BalanceScreen() {
-    ReportScreen(reportViewModel = ReportViewModel)
+    ReportScreen(ReportViewModel)
 }
 
 @Composable
