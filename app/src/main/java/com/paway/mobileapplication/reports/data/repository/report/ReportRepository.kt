@@ -13,71 +13,50 @@ import kotlinx.coroutines.withContext
 
 class ReportRepository(private val reportService: ReportService) {
 
-    // Obtener un reporte por ID de usuario
+
+
     suspend fun getReportByUserId(userId: String): Resource<List<Report>> = withContext(Dispatchers.IO) {
         try {
             val response = reportService.getReportByUserId(userId)
             if (response.isSuccessful) {
                 response.body()?.let { reportDtos ->
                     val reports = reportDtos.map { it.toReport() }
-                    return@withContext Resource.Success(data = reports)
-                }
-                return@withContext Resource.Error("Empty response body")
+                    return@withContext Resource.Success(reports)
+                } ?: Resource.Error("Respuesta vacía del servidor")
+            } else {
+                Resource.Error("Error en la respuesta del servidor: ${response.message()}")
             }
-            return@withContext Resource.Error(response.message())
         } catch (e: Exception) {
-            return@withContext Resource.Error(e.message ?: "An error occurred")
+            Resource.Error("Excepción: ${e.message}")
         }
     }
 
-    // Crear un nuevo reporte
+
     suspend fun createReport(reportRequest: ReportRequestDto): Resource<Report> = withContext(Dispatchers.IO) {
         try {
             val response = reportService.createReport(reportRequest)
             if (response.isSuccessful) {
                 response.body()?.let { reportDto ->
-                    return@withContext Resource.Success(data = reportDto.toReport())
-                }
-                return@withContext Resource.Error("Empty response body")
+                    return@withContext Resource.Success(reportDto.toReport())
+                } ?: Resource.Error("Respuesta vacía del servidor")
+            } else {
+                Resource.Error("Error en la respuesta del servidor: ${response.message()}")
             }
-            return@withContext Resource.Error(response.message())
         } catch (e: Exception) {
-            return@withContext Resource.Error(e.message ?: "An error occurred")
+            Resource.Error("Excepción: ${e.message}")
         }
     }
 
-    // Otros métodos relacionados con reportes se pueden agregar aquí según sea necesario
-    suspend fun createTransaction(transactionDto: TransactionDto): Resource<Unit> {
-        return withContext(Dispatchers.IO) {
-            try {
-                val response = reportService.createTransaction(transactionDto)
-                if (response.isSuccessful) {
-                    Resource.Success(Unit)
-                } else {
-                    // Captura el mensaje de error
-                    val errorMessage = response.errorBody()?.string() ?: "Error desconocido"
-                    Resource.Error("Error en la creación de la transacción: $errorMessage")
-                }
-            } catch (e: Exception) {
-                Resource.Error("Excepción: ${e.message}")
-            }
-        }
-    }
-
-
-    suspend fun getTransactionsByUserId(userId: String): Resource<List<Transaction>> = withContext(Dispatchers.IO) {
+    suspend fun deleteReport(userId: String, reportId: String): Resource<Unit> = withContext(Dispatchers.IO) {
         try {
-            val response = reportService.getTransactionsByUserId()
+            val response = reportService.deleteReport(userId, reportId)
             if (response.isSuccessful) {
-                response.body()?.let { transactionDtos ->
-                    val transactions = transactionDtos.map { it.toTransaction() }
-                    return@withContext Resource.Success(data = transactions)
-                }
-                return@withContext Resource.Error("Empty response body")
+                Resource.Success(Unit)
+            } else {
+                Resource.Error("Error en la respuesta del servidor: ${response.message()}")
             }
-            return@withContext Resource.Error(response.message())
         } catch (e: Exception) {
-            return@withContext Resource.Error(e.message ?: "An error occurred")
+            Resource.Error("Excepción: ${e.message}")
         }
     }
 }
