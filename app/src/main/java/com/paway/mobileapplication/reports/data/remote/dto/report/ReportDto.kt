@@ -7,7 +7,7 @@ data class ReportDto(
     val id: String,
     val userId: String,
     val dateRange: DateRange, // Cambiar a DateRange
-    val generatedAt: Date,
+    val generatedAt: String,
     val reportType: String,
     val totalIncome: Double,
     val totalExpenses: Double,
