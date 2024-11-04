@@ -24,8 +24,12 @@ import com.paway.mobileapplication.invoces.data.repository.WebServiceRepository
 import com.paway.mobileapplication.common.RetrofitClient
 import com.paway.mobileapplication.invoces.presentation.facturas.InvoiceDashboardViewModel
 import com.paway.mobileapplication.ui.theme.MobileApplicationTheme
-val InvoiceDashboardviewModel = InvoiceDashboardViewModel(WebServiceRepository(RetrofitClient.webService))
+import com.paway.mobileapplication.user.data.repository.HomeRepository
+import com.paway.mobileapplication.user.presentation.HomeScreenContent
+import com.paway.mobileapplication.user.presentation.HomeViewModel
 
+val InvoiceDashboardviewModel = InvoiceDashboardViewModel(WebServiceRepository(RetrofitClient.webService))
+val HomeViewModel = HomeViewModel(HomeRepository(RetrofitClient.homeServiceApi))
 class MainActivitySelector : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,7 +61,7 @@ fun MainScreen(userId: String?) {
                 .weight(1f)
         ) {
             when (selectedScreen) {
-                "home" -> HomeScreen(userId)
+                "home" -> HomeScreen(homeViewModel = HomeViewModel)
                 "inventory" -> InventoryScreen()
                 "invoice" -> InvoiceScreen()
                 "balance" -> BalanceScreen()
@@ -70,11 +74,11 @@ fun MainScreen(userId: String?) {
     }
 }
 
-@Composable
-fun HomeScreen(userId: String?) {
-    Text(text = userId ?: "Pantalla de Inicio")
-}
 
+@Composable
+fun HomeScreen(homeViewModel: HomeViewModel) {
+    HomeScreenContent(homeViewModel = homeViewModel)
+}
 @Composable
 fun InventoryScreen() {
     Text(text = "Pantalla de Inventario")
