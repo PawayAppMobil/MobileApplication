@@ -1,10 +1,14 @@
 package com.paway.mobileapplication.invoces.presentation.facturas
 
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,6 +21,7 @@ import java.io.ByteArrayOutputStream
 import java.text.SimpleDateFormat
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.paway.mobileapplication.inventory.domain.Product
 
 @Composable
 fun ImportInvoiceScreen(viewModel: ImportInvoiceViewModel, userId: String?) {
@@ -32,7 +37,7 @@ fun ImportInvoiceScreen(viewModel: ImportInvoiceViewModel, userId: String?) {
 
     val pickDocument = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
-    ) { uri ->
+    ) { uri: Uri? ->
         uri?.let {
             val inputStream = context.contentResolver.openInputStream(it)
             val outputStream = ByteArrayOutputStream()
@@ -66,7 +71,7 @@ fun ImportInvoiceScreen(viewModel: ImportInvoiceViewModel, userId: String?) {
         var dueDateText by remember { mutableStateOf("") }
         OutlinedTextField(
             value = dueDateText,
-            onValueChange = { 
+            onValueChange = {
                 dueDateText = it
                 try {
                     val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
@@ -90,26 +95,26 @@ fun ImportInvoiceScreen(viewModel: ImportInvoiceViewModel, userId: String?) {
             Text(if (state.selectedDocument != null) "Document Selected" else "Upload Document")
         }
 
-        // Invoice Items
-        Text("Invoice Items", style = MaterialTheme.typography.titleMedium)
-        LazyColumn {
-            items(state.invoice.items) { item ->
-                InvoiceItemRow(item, onRemove = { viewModel.removeInvoiceItem(item) })
-            }
-            item {
-                AddInvoiceItemButton(onAdd = { viewModel.addInvoiceItem(it) })
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Display total amount
+        // Products Selection
         Text(
-            "Total Amount: $${state.invoice.items.sumOf { it.quantity * it.unitPrice }}",
-            style = MaterialTheme.typography.titleMedium
+            "Select Products",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(vertical = 8.dp)
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        LazyColumn(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+        ) {
+            items(state.availableProducts) { product ->
+                ProductSelectionItem(
+                    product = product,
+                    isSelected = product in state.selectedProducts,
+                    onToggle = { viewModel.toggleProductSelection(product) }
+                )
+            }
+        }
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -125,7 +130,7 @@ fun ImportInvoiceScreen(viewModel: ImportInvoiceViewModel, userId: String?) {
             Button(
                 onClick = {
                     val gson = GsonBuilder().setPrettyPrinting().create()
-                    jsonContent = gson.toJson(state.invoice)
+                    jsonContent = gson.toJson(state.invoice.toInvoiceDTO())
                     showJsonDialog = true
                 },
                 modifier = Modifier.weight(1f)
@@ -135,18 +140,27 @@ fun ImportInvoiceScreen(viewModel: ImportInvoiceViewModel, userId: String?) {
         }
 
         if (state.isLoading) {
-            CircularProgressIndicator()
+            CircularProgressIndicator(
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
         }
 
         state.error?.let { error ->
-            Text(error, color = MaterialTheme.colorScheme.error)
+            Text(
+                error,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
         }
 
         if (state.success) {
-            Text("Invoice and Transaction created successfully!", color = MaterialTheme.colorScheme.primary)
+            Text(
+                "Invoice and Transaction created successfully!",
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
         }
 
-        // Debug Info
         if (state.debugInfo.isNotEmpty()) {
             Text(
                 "Debug Info:",
@@ -176,67 +190,41 @@ fun ImportInvoiceScreen(viewModel: ImportInvoiceViewModel, userId: String?) {
 }
 
 @Composable
-fun InvoiceItemRow(item: InvoiceItem, onRemove: () -> Unit) {
+fun ProductSelectionItem(
+    product: Product,
+    isSelected: Boolean,
+    onToggle: () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
+            .clickable(onClick = onToggle)
+            .padding(8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(item.description, modifier = Modifier.weight(1f))
-        Text("${item.quantity} x ${item.unitPrice}")
-        IconButton(onClick = onRemove) {
-            Text("X")
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = product.name,
+                style = MaterialTheme.typography.bodyLarge
+            )
+            Text(
+                text = "Stock: ${product.stock}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
         }
-    }
-}
-
-@Composable
-fun AddInvoiceItemButton(onAdd: (InvoiceItem) -> Unit) {
-    var description by remember { mutableStateOf("") }
-    var quantity by remember { mutableStateOf("") }
-    var unitPrice by remember { mutableStateOf("") }
-
-    Column {
-        OutlinedTextField(
-            value = description,
-            onValueChange = { description = it },
-            label = { Text("Description") },
-            modifier = Modifier.fillMaxWidth()
+        if (product.isFavorite) {
+            Icon(
+                imageVector = Icons.Default.Star,
+                contentDescription = "Favorite",
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(end = 8.dp)
+            )
+        }
+        Checkbox(
+            checked = isSelected,
+            onCheckedChange = { onToggle() }
         )
-        Row {
-            OutlinedTextField(
-                value = quantity,
-                onValueChange = { quantity = it },
-                label = { Text("Quantity") },
-                modifier = Modifier.weight(1f)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            OutlinedTextField(
-                value = unitPrice,
-                onValueChange = { unitPrice = it },
-                label = { Text("Unit Price") },
-                modifier = Modifier.weight(1f)
-            )
-        }
-        Button(
-            onClick = {
-                onAdd(
-                    InvoiceItem(
-                        id = UUID.randomUUID().toString(),
-                        description = description,
-                        quantity = quantity.toIntOrNull() ?: 0,
-                        unitPrice = unitPrice.toDoubleOrNull() ?: 0.0,
-                        productId = "" // You might want to handle this differently
-                    )
-                )
-                description = ""
-                quantity = ""
-                unitPrice = ""
-            },
-            modifier = Modifier.align(Alignment.End)
-        ) {
-            Text("Add Item")
-        }
     }
 }

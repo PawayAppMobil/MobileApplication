@@ -27,7 +27,7 @@ fun InvoiceDashboardScreen(dashboardViewModel: InvoiceDashboardViewModel, userId
     val state = dashboardViewModel.state.value
 
     val importInvoiceViewModel = ImportInvoiceViewModel(WebServiceRepository(RetrofitClient.webService))
-    val invoiceListViewModel = InvoiceListViewModel()
+    val invoiceListViewModel = InvoiceListViewModel(WebServiceRepository(RetrofitClient.webService))
     val schedulePaymentsViewModel = SchedulePaymentsViewModel()
     val paymentListViewModel = PaymentListViewModel()
     val discrepancyAlertViewModel = DiscrepancyAlertViewModel()

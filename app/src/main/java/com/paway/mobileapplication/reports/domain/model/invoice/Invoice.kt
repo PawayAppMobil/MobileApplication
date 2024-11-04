@@ -5,8 +5,8 @@ data class InvoiceDTO(
     val date: Date,
     val amount: Double,
     val status: String,
-    val items: List<InvoiceItem>,
-    val transactionId: String,
+    val productIds: List<String>,  // Lista de IDs de productos
     val userId: String,
     val dueDate: Date
+    // No incluimos document aquí ya que se manejará por separado
 )

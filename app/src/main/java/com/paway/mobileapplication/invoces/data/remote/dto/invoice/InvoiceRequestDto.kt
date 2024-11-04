@@ -1,36 +1,28 @@
 package com.paway.mobileapplication.invoces.data.remote.dto.invoice
 
 import com.paway.mobileapplication.invoces.domain.model.invoice.Invoice
-import com.paway.mobileapplication.invoces.domain.model.invoice.InvoiceItem
-import java.util.Date
-import android.util.Base64
+import java.util.*
 
 data class InvoiceRequestDto(
-    val date: Date,
-    val amount: Double,
-    val status: String,
-    val items: List<InvoiceItemDto>,
-    val transactionId: String,
+    val id: String = UUID.randomUUID().toString(),
     val userId: String,
+    val date: Date,
     val dueDate: Date,
-    val document: String? // Cambiado a String? para representar el documento en base64
+    val status: String,
+    val items: List<ProductDTO>,
+    val document: ByteArray? = null,
+    val amount: Double = 0.0
 )
 
-fun Invoice.toInvoiceRequestDto() = InvoiceRequestDto(
-    date = date,
-    amount = amount,
-    status = status,
-    items = items.map { it.toInvoiceItemDto() },
-    transactionId = transactionId,
-    userId = userId,
-    dueDate = dueDate,
-    document = document?.let { Base64.encodeToString(it, Base64.DEFAULT) }
-)
-
-fun InvoiceItem.toInvoiceItemDto() = InvoiceItemDto(
-    id = id,
-    description = description,
-    quantity = quantity,
-    unitPrice = unitPrice,
-    productId = productId
-)
+fun Invoice.toInvoiceRequestDto(): InvoiceRequestDto {
+    return InvoiceRequestDto(
+        id = this.id,
+        userId = this.userId,
+        date = this.date,
+        dueDate = this.dueDate,
+        status = this.status,
+        items = this.items.map { it.toProductDTO() },
+        document = this.document,
+        amount = this.amount
+    )
+}

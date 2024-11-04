@@ -5,9 +5,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.paway.mobileapplication.inventory.common.Resource
+import com.paway.mobileapplication.inventory.domain.Product
 import com.paway.mobileapplication.invoces.data.repository.WebServiceRepository
 import com.paway.mobileapplication.invoces.domain.model.invoice.Invoice
-import com.paway.mobileapplication.invoces.domain.model.invoice.InvoiceItem
 import com.paway.mobileapplication.invoces.domain.model.transaction.Transaction
 import kotlinx.coroutines.launch
 import java.util.*
@@ -18,96 +18,94 @@ data class ImportInvoiceState(
     val error: String? = null,
     val success: Boolean = false,
     val selectedDocument: ByteArray? = null,
-    val debugInfo: String = ""
+    val debugInfo: String = "",
+    val availableProducts: List<Product> = emptyList(),
+    val selectedProducts: List<Product> = emptyList()
 )
 
 class ImportInvoiceViewModel(private val repository: WebServiceRepository) : ViewModel() {
     private val _state = mutableStateOf(ImportInvoiceState())
     val state: State<ImportInvoiceState> = _state
 
+    init {
+        loadAvailableProducts()
+    }
+
+    private fun loadAvailableProducts() {
+        viewModelScope.launch {
+            when (val result = repository.getAllProducts()) {
+                is Resource.Success -> {
+                    _state.value = _state.value.copy(availableProducts = result.data ?: emptyList())
+                }
+                is Resource.Error -> {
+                    _state.value = _state.value.copy(error = "Failed to load products: ${result.message}")
+                }
+            }
+        }
+    }
+
     fun setUserId(userId: String) {
         _state.value = _state.value.copy(invoice = _state.value.invoice.copy(userId = userId))
     }
 
-    fun addInvoiceItem(item: InvoiceItem) {
-        val currentItems = _state.value.invoice.items.toMutableList()
-        currentItems.add(item)
-        updateInvoice(items = currentItems)
-    }
+    fun toggleProductSelection(product: Product) {
+        val currentSelected = _state.value.selectedProducts.toMutableList()
+        if (currentSelected.contains(product)) {
+            currentSelected.remove(product)
+        } else {
+            currentSelected.add(product)
+        }
+        _state.value = _state.value.copy(selectedProducts = currentSelected)
 
-    fun removeInvoiceItem(item: InvoiceItem) {
-        val currentItems = _state.value.invoice.items.toMutableList()
-        currentItems.remove(item)
-        updateInvoice(items = currentItems)
+        updateInvoiceDetails(items = currentSelected)
     }
 
     fun updateInvoiceDetails(
         date: Date? = null,
         dueDate: Date? = null,
         status: String? = null,
-        document: ByteArray? = null
+        document: ByteArray? = null,
+        items: List<Product>? = null
     ) {
-        updateInvoice(
-            date = date,
-            dueDate = dueDate,
-            status = status,
-            document = document
+        val updatedInvoice = _state.value.invoice.copy(
+            date = date ?: _state.value.invoice.date,
+            status = status ?: _state.value.invoice.status,
+            items = items ?: _state.value.invoice.items,
+            userId = _state.value.invoice.userId,
+            dueDate = dueDate ?: _state.value.invoice.dueDate,
+            document = document ?: _state.value.invoice.document
         )
-        _state.value = _state.value.copy(selectedDocument = document)
-    }
-
-    private fun updateInvoice(
-        date: Date? = null,
-        amount: Double? = null,
-        status: String? = null,
-        items: List<InvoiceItem>? = null,
-        transactionId: String? = null,
-        userId: String? = null,
-        dueDate: Date? = null,
-        document: ByteArray? = null
-    ) {
         _state.value = _state.value.copy(
-            invoice = _state.value.invoice.copy(
-                date = date ?: _state.value.invoice.date,
-                amount = amount ?: _state.value.invoice.amount,
-                status = status ?: _state.value.invoice.status,
-                items = items ?: _state.value.invoice.items,
-                transactionId = transactionId ?: _state.value.invoice.transactionId,
-                userId = userId ?: _state.value.invoice.userId,
-                dueDate = dueDate ?: _state.value.invoice.dueDate,
-                document = document ?: _state.value.invoice.document
-            )
+            invoice = updatedInvoice,
+            selectedDocument = document ?: _state.value.selectedDocument
         )
     }
 
     fun updateSelectedDocument(document: ByteArray) {
-        _state.value = _state.value.copy(selectedDocument = document)
+        updateInvoiceDetails(document = document)
     }
 
     fun createInvoiceAndTransaction() {
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true, error = null, success = false)
 
-            if (_state.value.invoice.items.isEmpty()) {
+            if (_state.value.selectedProducts.isEmpty()) {
                 _state.value = _state.value.copy(
                     isLoading = false,
-                    error = "La factura debe tener al menos un item"
+                    error = "Debe seleccionar al menos un producto"
                 )
                 return@launch
             }
 
-            val totalAmount = _state.value.invoice.items.sumOf { it.quantity * it.unitPrice }
             val updatedInvoice = _state.value.invoice.copy(
-                amount = totalAmount,
                 date = Date(),
+                items = _state.value.selectedProducts,
                 dueDate = _state.value.invoice.dueDate ?: Date(),
-                status = _state.value.invoice.status.ifEmpty { "PENDING" },
-                transactionId = null.toString() // Esto se llenará después de crear la transacción
+                status = _state.value.invoice.status.ifEmpty { "PENDING" }
             )
 
-            // Actualizar el debugInfo con los datos que se van a enviar
             _state.value = _state.value.copy(
-                debugInfo = "Enviando: ${updatedInvoice.toString()}\nDocumento: ${_state.value.selectedDocument != null}"
+                debugInfo = "Enviando: ${updatedInvoice.toInvoiceDTO()}\nDocumento: ${_state.value.selectedDocument != null}"
             )
 
             val invoiceResult = repository.createInvoice(updatedInvoice)
@@ -125,6 +123,7 @@ class ImportInvoiceViewModel(private val repository: WebServiceRepository) : Vie
                             type = "Income",
                             income = true
                         )
+
                         val transactionResult = repository.createTransaction(transaction)
                         when (transactionResult) {
                             is Resource.Success -> {
@@ -132,7 +131,7 @@ class ImportInvoiceViewModel(private val repository: WebServiceRepository) : Vie
                                     isLoading = false,
                                     success = true,
                                     error = null,
-                                    debugInfo = _state.value.debugInfo + "\n\nRespuesta: ${createdInvoice.toString()}"
+                                    debugInfo = _state.value.debugInfo + "\n\nRespuesta: $createdInvoice"
                                 )
                             }
                             is Resource.Error -> {

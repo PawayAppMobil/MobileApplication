@@ -1,4 +1,5 @@
 package com.paway.mobileapplication.invoces.presentation.facturas
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -13,12 +14,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import com.paway.mobileapplication.invoces.domain.model.invoice.Invoice
 
 @Composable
-fun InvoiceListScreen(viewModel: InvoiceListViewModel) {
-    val invoices by viewModel.invoices.collectAsState()
+fun InvoiceListScreen(viewModel: InvoiceListViewModel, userId: String? = null) {
+    val state by viewModel.state.collectAsState()
+
+    LaunchedEffect(userId) {
+        userId?.let { viewModel.setUserId(it) }
+    }
 
     Column(
         modifier = Modifier
@@ -34,30 +38,27 @@ fun InvoiceListScreen(viewModel: InvoiceListViewModel) {
             color = Color(0xFF006064)
         )
         Spacer(modifier = Modifier.height(16.dp))
-        InvoiceList(invoices)
+
+        when {
+            state.isLoading -> {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
+            }
+            state.error != null -> {
+                Text(
+                    text = state.error ?: "Error desconocido",
+                    color = Color.Red,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
+            }
+            else -> {
+                InvoiceList(state.invoices)
+            }
+        }
+        
         Spacer(modifier = Modifier.height(16.dp))
         ActionButtons(viewModel)
-    }
-}
-
-@Composable
-fun HeaderA() {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = "INVOICE LIST",
-            fontWeight = FontWeight.Bold,
-            fontSize = 18.sp,
-            color = Color(0xFF006064)
-        )
-        Icon(
-            imageVector = Icons.Default.Notifications,
-            contentDescription = "Notifications",
-            tint = Color(0xFF006064)
-        )
     }
 }
 
@@ -86,9 +87,48 @@ fun InvoiceItem(invoice: Invoice) {
         colors = ButtonDefaults.buttonColors(containerColor = Color.Blue),
         shape = RoundedCornerShape(8.dp)
     ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+        ) {
+            Text(
+                text = "Factura #${invoice.id}",
+                color = Color.White
+            )
+            Text(
+                text = "Monto: S/ ${invoice.amount}",
+                color = Color.White
+            )
+            Text(
+                text = "Estado: ${invoice.status}",
+                color = Color.White
+            )
+            Text(
+                text = "Fecha de vencimiento: ${invoice.dueDate}",
+                color = Color.White
+            )
+        }
+    }
+}
+
+@Composable
+fun HeaderA() {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Text(
-            text = "Factura #${invoice.number}: S/${invoice.amount} - ${invoice.status}",
-            color = Color.White
+            text = "INVOICE LIST",
+            fontWeight = FontWeight.Bold,
+            fontSize = 18.sp,
+            color = Color(0xFF006064)
+        )
+        Icon(
+            imageVector = Icons.Default.Notifications,
+            contentDescription = "Notifications",
+            tint = Color(0xFF006064)
         )
     }
 }
@@ -113,33 +153,5 @@ fun ActionButton(text: String, onClick: () -> Unit) {
         shape = RoundedCornerShape(8.dp)
     ) {
         Text(text, color = Color.White)
-    }
-}
-
-data class Invoice(val number: String, val amount: Int, val status: String)
-
-class InvoiceListViewModel {
-    private val _invoices = MutableStateFlow<List<Invoice>>(emptyList())
-    val invoices: StateFlow<List<Invoice>> = _invoices
-
-    init {
-        // Populate with sample data
-        _invoices.value = listOf(
-            Invoice("1232", 500, "Pendiente"),
-            Invoice("1233", 1000, "Pendiente"),
-            Invoice("1234", 3000, "Pendiente")
-        )
-    }
-
-    fun reviewDetails() {
-        // Implement review details logic
-    }
-
-    fun confirmInvoices() {
-        // Implement confirm invoices logic
-    }
-
-    fun discardInvoices() {
-        // Implement discard invoices logic
     }
 }

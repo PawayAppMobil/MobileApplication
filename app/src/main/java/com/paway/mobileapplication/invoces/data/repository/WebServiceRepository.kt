@@ -1,6 +1,8 @@
 package com.paway.mobileapplication.invoces.data.repository
 
 import com.paway.mobileapplication.inventory.common.Resource
+import com.paway.mobileapplication.inventory.data.remote.toProduct
+import com.paway.mobileapplication.inventory.domain.Product
 import com.paway.mobileapplication.invoces.data.remote.WebService
 import com.paway.mobileapplication.invoces.data.remote.dto.invoice.toInvoice
 import com.paway.mobileapplication.invoces.data.remote.dto.invoice.toInvoiceRequestDto
@@ -10,6 +12,7 @@ import kotlinx.coroutines.withContext
 import com.paway.mobileapplication.invoces.data.remote.dto.transaction.toTransaction
 import com.paway.mobileapplication.invoces.data.remote.dto.transaction.toTransactionRequestDto
 import com.paway.mobileapplication.invoces.domain.model.transaction.Transaction
+import java.util.*
 
 class WebServiceRepository(private val webService: WebService) {
 
@@ -27,7 +30,20 @@ class WebServiceRepository(private val webService: WebService) {
             return@withContext Resource.Error(e.message ?: "An error occurred")
         }
     }
-
+    suspend fun getAllProducts(): Resource<List<Product>> = withContext(Dispatchers.IO) {
+        try {
+            val response = webService.getAllProducts()
+            if (response.isSuccessful) {
+                response.body()?.let { productDtos ->
+                    return@withContext Resource.Success(data = productDtos.map { it.toProduct() })
+                }
+                return@withContext Resource.Error("Empty response body")
+            }
+            return@withContext Resource.Error(response.message())
+        } catch (e: Exception) {
+            return@withContext Resource.Error(e.message ?: "An error occurred")
+        }
+    }
     suspend fun updateInvoice(id: String, invoice: Invoice): Resource<Invoice> = withContext(Dispatchers.IO) {
         try {
             val response = webService.updateInvoice(id, invoice.toInvoiceRequestDto())
@@ -90,8 +106,18 @@ class WebServiceRepository(private val webService: WebService) {
             val invoiceRequestDto = invoice.toInvoiceRequestDto()
             val response = webService.createInvoice(invoiceRequestDto)
             if (response.isSuccessful) {
-                response.body()?.let { invoiceDto ->
-                    return@withContext Resource.Success(data = invoiceDto.toInvoice())
+                response.body()?.let { responseMap ->
+                    val invoice = Invoice(
+                        id = responseMap["id"] as? String ?: "",
+                        userId = responseMap["userId"] as? String ?: "",
+                        date = responseMap["date"] as? Date ?: Date(),
+                        dueDate = responseMap["dueDate"] as? Date ?: Date(),
+                        status = responseMap["status"] as? String ?: "",
+                        items = (responseMap["items"] as? List<*>)?.mapNotNull { it as? Product } ?: emptyList(),
+                        document = responseMap["document"] as? ByteArray,
+                        amount = (responseMap["amount"] as? Number)?.toDouble() ?: 0.0
+                    )
+                    return@withContext Resource.Success(data = invoice)
                 }
                 return@withContext Resource.Error("Empty response body")
             }
@@ -152,6 +178,21 @@ class WebServiceRepository(private val webService: WebService) {
             if (response.isSuccessful) {
                 response.body()?.let { transactionDto ->
                     return@withContext Resource.Success(data = transactionDto.toTransaction())
+                }
+                return@withContext Resource.Error("Empty response body")
+            }
+            return@withContext Resource.Error(response.message())
+        } catch (e: Exception) {
+            return@withContext Resource.Error(e.message ?: "An error occurred")
+        }
+    }
+
+    suspend fun getInvoicesByUserId(userId: String): Resource<List<Invoice>> = withContext(Dispatchers.IO) {
+        try {
+            val response = webService.getInvoicesByUserId(userId)
+            if (response.isSuccessful) {
+                response.body()?.let { invoiceDtos ->
+                    return@withContext Resource.Success(data = invoiceDtos.map { it.toInvoice() })
                 }
                 return@withContext Resource.Error("Empty response body")
             }
