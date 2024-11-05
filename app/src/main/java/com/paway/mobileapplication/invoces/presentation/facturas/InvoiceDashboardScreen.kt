@@ -3,7 +3,10 @@ package com.paway.mobileapplication.invoces.presentation.facturas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -11,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -50,7 +54,7 @@ fun InvoiceDashboardScreen(dashboardViewModel: InvoiceDashboardViewModel, userId
             else -> {
                 DashboardButton()
                 Spacer(modifier = Modifier.height(16.dp))
-                PendingInvoicesSection(state)
+                PendingInvoicesSection(state, dashboardViewModel)
                 Spacer(modifier = Modifier.height(48.dp))
                 ActionButtons(onButtonClick = { screen -> currentScreen = screen })
             }
@@ -91,50 +95,121 @@ fun DashboardButton() {
 }
 
 @Composable
-fun PendingInvoicesSection(state: DashboardUIState) {
-    Text(
-        text = "PENDING INVOICES",
-        fontWeight = FontWeight.Bold,
-        color = Color(0xFF006064),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 8.dp),
-        textAlign = TextAlign.Center
-    )
-    Row(
+fun PendingInvoicesSection(state: DashboardUIState, viewModel: InvoiceDashboardViewModel) {
+    var showDaysDialog by remember { mutableStateOf(false) }
+    var daysInput by remember { mutableStateOf(state.daysToCheck.toString()) }
+
+    Column(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.weight(1f)
-        ) {
-            InfoCard("Total facturas\npendientes", alignment = Alignment.Center)
-            InfoCard("Total Pagos\nProgramados", alignment = Alignment.Center)
-            InfoCard("Alertas", alignment = Alignment.Center)
-        }
-        Spacer(modifier = Modifier.width(16.dp))
-        Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.weight(1f)
-        ) {
-            InfoCard(state.totalPendingInvoices, alignment = Alignment.Center)
-            InfoCard(state.totalScheduledPayments, alignment = Alignment.Center)
-            InfoCard(state.totalAlerts, alignment = Alignment.Center)
-        }
-    }
-
-    if (state.isLoading) {
-        CircularProgressIndicator()
-    }
-
-    state.error?.let { error ->
         Text(
-            text = error,
-            color = Color.Red,
+            text = "RESUMEN DE FACTURAS",
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF006064),
+            modifier = Modifier.padding(bottom = 8.dp),
+            textAlign = TextAlign.Center
         )
+        
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.weight(1f)
+            ) {
+                Card(
+                    modifier = Modifier
+                        .width(140.dp)
+                        .height(60.dp)
+                        .clickable { showDaysDialog = true },
+                    colors = CardDefaults.cardColors(containerColor = Color.Blue),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(8.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Facturas por\nvencer (${state.daysToCheck} días)",
+                            color = Color.White,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+                InfoCard("Facturas\nVencidas", alignment = Alignment.Center)
+                InfoCard("Total de\nFacturas", alignment = Alignment.Center)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.weight(1f)
+            ) {
+                InfoCard(state.totalPendingInvoices, alignment = Alignment.Center)
+                InfoCard(state.totalOverdueInvoices, alignment = Alignment.Center)
+                InfoCard(state.totalInvoices, alignment = Alignment.Center)
+            }
+        }
+
+        if (showDaysDialog) {
+            AlertDialog(
+                onDismissRequest = { showDaysDialog = false },
+                title = { Text("Configurar días a vencer") },
+                text = {
+                    OutlinedTextField(
+                        value = daysInput,
+                        onValueChange = { daysInput = it.filter { char -> char.isDigit() } },
+                        label = { Text("Días") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    )
+                },
+                confirmButton = {
+                    Button(onClick = {
+                        daysInput.toIntOrNull()?.let { days ->
+                            if (days > 0) {
+                                viewModel.updateDaysToCheck(days)
+                            }
+                        }
+                        showDaysDialog = false
+                    }) {
+                        Text("Confirmar")
+                    }
+                },
+                dismissButton = {
+                    Button(onClick = { showDaysDialog = false }) {
+                        Text("Cancelar")
+                    }
+                }
+            )
+        }
+
+        if (state.isLoading) {
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+
+        state.error?.let { error ->
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = error,
+                    color = Color.Red
+                )
+            }
+        }
     }
 }
 
