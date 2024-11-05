@@ -21,18 +21,14 @@ import okhttp3.MediaType
 class WebServiceRepository(private val webService: WebService) {
 
     suspend fun getInvoice(id: String): Resource<Invoice> = withContext(Dispatchers.IO) {
-        try {
-            val response = webService.getInvoice(id)
-            if (response.isSuccessful) {
-                response.body()?.let { invoiceDto ->
-                    return@withContext Resource.Success(data = invoiceDto.toInvoice())
-                }
-                return@withContext Resource.Error("Empty response body")
+        val response = webService.getInvoice(id)
+        if (response.isSuccessful) {
+            response.body()?.let { invoiceDto ->
+                return@withContext Resource.Success(data = invoiceDto.toInvoice())
             }
-            return@withContext Resource.Error(response.message())
-        } catch (e: Exception) {
-            return@withContext Resource.Error(e.message ?: "An error occurred")
+            return@withContext Resource.Error("Empty response body")
         }
+        return@withContext Resource.Error(response.message())
     }
 
     suspend fun getAllProducts(): Resource<List<Product>> = withContext(Dispatchers.IO) {
@@ -47,42 +43,15 @@ class WebServiceRepository(private val webService: WebService) {
     }
 
     suspend fun updateInvoice(id: String, invoice: Invoice): Resource<Invoice> = withContext(Dispatchers.IO) {
-        try {
-            println("📤 Iniciando actualización de factura")
-            println("ID: $id")
-            println("URL completa: ${webService.javaClass.methods.find { it.name == "updateInvoice" }?.annotations?.toString()}")
-            
-            val response = webService.updateInvoice(id, invoice.toInvoiceRequestDto())
-
-            if (response.isSuccessful) {
-                response.body()?.let { invoiceDto ->
-                    return@withContext Resource.Success(data = invoiceDto.toInvoice())
-                }
-                return@withContext Resource.Error("Empty response body")
+        val response = webService.updateInvoice(id, invoice.toInvoiceRequestDto())
+        if (response.isSuccessful) {
+            response.body()?.let { invoiceDto ->
+                return@withContext Resource.Success(data = invoiceDto.toInvoice())
             }
-            
-            val errorBody = response.errorBody()?.string()
-            println("❌ Error body: $errorBody")
-            println("❌ Response message: ${response.message()}")
-            
-            return@withContext Resource.Error(
-                """
-                Error HTTP ${response.code()}
-                Message: ${response.message()}
-                Error body: $errorBody
-                """.trimIndent()
-            )
-        } catch (e: Exception) {
-            println("💥 Exception: ${e.message}")
-            println("Stack trace: ${e.stackTraceToString()}")
-            return@withContext Resource.Error(
-                """
-                Error de red
-                Tipo: ${e.javaClass.simpleName}
-                Mensaje: ${e.message}
-                """.trimIndent()
-            )
+            return@withContext Resource.Error("Empty response body")
         }
+        val errorBody = response.errorBody()?.string()
+        return@withContext Resource.Error("Error ${response.code()}: ${response.message()} - $errorBody")
     }
 
     suspend fun deleteInvoice(id: String): Resource<Unit> = withContext(Dispatchers.IO) {

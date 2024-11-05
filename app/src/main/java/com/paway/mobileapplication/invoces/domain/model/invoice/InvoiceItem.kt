@@ -7,5 +7,5 @@ data class InvoiceItem(
     val productName: String,
     val stock: Int,
     val providerId: String,
-    val image: String? // Representa la imagen en base64
+    val image: String?
 )

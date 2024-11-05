@@ -98,7 +98,6 @@ class ImportInvoiceViewModel(private val repository: WebServiceRepository) : Vie
             }
 
             try {
-                // 1. Crear Invoice
                 val invoice = _state.value.invoice.copy(
                     date = Date(),
                     amount = _state.value.selectedProducts.size.toDouble(),
@@ -110,7 +109,6 @@ class ImportInvoiceViewModel(private val repository: WebServiceRepository) : Vie
                 when (val invoiceResult = repository.createInvoice(invoice)) {
                     is Resource.Success -> {
                         invoiceResult.data?.let { createdInvoice ->
-                            // 2. Subir documento si existe
                             _state.value.selectedDocument?.let { document ->
                                 val documentResult = repository.uploadInvoiceDocument(
                                     createdInvoice.id,

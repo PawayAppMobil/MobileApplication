@@ -105,11 +105,7 @@ class InvoiceListViewModel(
             }
 
             try {
-                val requestJson = invoice.toInvoiceRequestDto()
-                println("🔍 Validación de datos:")
-                println("ID de factura: ${invoice.id}")
-                println("URL esperada: /invoices/${invoice.id}")
-                println("Request JSON: $requestJson")
+
                 
                 when (val result = repository.updateInvoice(invoice.id, invoice)) {
                     is Resource.Success -> {
