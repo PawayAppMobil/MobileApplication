@@ -5,6 +5,7 @@ import com.paway.mobileapplication.invoces.data.remote.dto.invoice.InvoiceReques
 import com.paway.mobileapplication.invoces.data.remote.dto.invoice.InvoiceResponseDto
 import com.paway.mobileapplication.invoces.data.remote.dto.transaction.TransactionRequestDto
 import com.paway.mobileapplication.invoces.data.remote.dto.transaction.TransactionResponseDto
+import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -24,10 +25,15 @@ interface WebService {
     @GET("/api/invoices/")
     suspend fun getAllInvoices(): Response<List<InvoiceResponseDto>>
 
-   // @POST("/api/invoices/")
-    //suspend fun createInvoice(@Body invoice: InvoiceRequestDto): Response<InvoiceResponseDto>
     @POST("/api/invoices/")
-    suspend fun createInvoice(@Body invoice: InvoiceRequestDto): Response<Map<String, Any>>
+    suspend fun createInvoice(@Body invoice: InvoiceRequestDto): Response<InvoiceResponseDto>
+
+    @Multipart
+    @POST("/api/invoices/{id}/document")
+    suspend fun uploadInvoiceDocument(
+        @Path("id") id: String,
+        @Part document: MultipartBody.Part
+    ): Response<Unit>
 
     @GET("/api/invoices/status/{status}/")
     suspend fun getInvoicesByStatus(@Path("status") status: String): Response<List<InvoiceResponseDto>>
@@ -41,8 +47,12 @@ interface WebService {
     @POST("/api/transactions/")
     suspend fun createTransaction(@Body transaction: TransactionRequestDto): Response<TransactionResponseDto>
 
-    @GET("/api/invoices/user/{userId}/")
+    @GET("/api/invoices/user/{userId}")
     suspend fun getInvoicesByUserId(@Path("userId") userId: String): Response<List<InvoiceResponseDto>>
+
     @GET("/api/products/")
     suspend fun getAllProducts(): Response<List<ProductDto>>
+
+    @GET("/api/products/user/{userId}")
+    suspend fun getProductsByUserId(@Path("userId") userId: String): Response<List<ProductDto>>
 }

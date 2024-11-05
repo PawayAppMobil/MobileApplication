@@ -29,6 +29,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
+import com.paway.mobileapplication.invoces.data.remote.dto.invoice.toInvoiceDTO
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -139,25 +140,11 @@ fun ImportInvoiceScreen(viewModel: ImportInvoiceViewModel, userId: String?) {
         }
 
         // Products Selection
-        Text(
-            "Select Products",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(vertical = 8.dp)
+        ProductSelectionSection(
+            availableProducts = state.availableProducts,
+            selectedProducts = state.selectedProducts,
+            onProductToggle = { viewModel.toggleProductSelection(it) }
         )
-
-        LazyColumn(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-        ) {
-            items(state.availableProducts) { product ->
-                ProductSelectionItem(
-                    product = product,
-                    isSelected = product in state.selectedProducts,
-                    onToggle = { viewModel.toggleProductSelection(product) }
-                )
-            }
-        }
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -233,6 +220,47 @@ fun ImportInvoiceScreen(viewModel: ImportInvoiceViewModel, userId: String?) {
 }
 
 @Composable
+fun ProductSelectionSection(
+    availableProducts: List<Product>,
+    selectedProducts: List<Product>,
+    onProductToggle: (Product) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(
+                "Productos Disponibles (${availableProducts.size})",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                "Seleccionados: ${selectedProducts.size}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.secondary
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            LazyColumn {
+                items(availableProducts) { product ->
+                    ProductSelectionItem(
+                        product = product,
+                        isSelected = selectedProducts.contains(product),
+                        onToggle = { onProductToggle(product) }
+                    )
+                    Divider()
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun ProductSelectionItem(
     product: Product,
     isSelected: Boolean,
@@ -252,17 +280,9 @@ fun ProductSelectionItem(
                 style = MaterialTheme.typography.bodyLarge
             )
             Text(
-                text = "Stock: ${product.stock}",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary
-            )
-        }
-        if (product.isFavorite) {
-            Icon(
-                imageVector = Icons.Default.Star,
-                contentDescription = "Favorite",
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(end = 8.dp)
+                text = "ID: ${product.id}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.secondary
             )
         }
         Checkbox(

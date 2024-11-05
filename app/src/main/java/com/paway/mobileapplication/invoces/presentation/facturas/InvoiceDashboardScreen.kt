@@ -43,7 +43,7 @@ fun InvoiceDashboardScreen(dashboardViewModel: InvoiceDashboardViewModel, userId
 
         when (currentScreen) {
             "importarFacturas" -> ImportInvoiceScreen(importInvoiceViewModel, userId)
-            "verFacturas" -> InvoiceListScreen(invoiceListViewModel)
+            "verFacturas" -> InvoiceListScreen(invoiceListViewModel, userId)
             "programarPagos" -> SchedulePaymentsScreen(schedulePaymentsViewModel)
             "historialPagos" -> PaymentListScreen(paymentListViewModel)
             "alertas" -> DiscrepancyAlertScreen(discrepancyAlertViewModel)

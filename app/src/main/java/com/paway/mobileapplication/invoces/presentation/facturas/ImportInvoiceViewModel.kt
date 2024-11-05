@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.paway.mobileapplication.inventory.common.Resource
 import com.paway.mobileapplication.inventory.domain.Product
+import com.paway.mobileapplication.invoces.data.remote.dto.invoice.toInvoiceDTO
 import com.paway.mobileapplication.invoces.data.repository.WebServiceRepository
 import com.paway.mobileapplication.invoces.domain.model.invoice.Invoice
 import com.paway.mobileapplication.invoces.domain.model.transaction.Transaction
@@ -27,25 +28,35 @@ class ImportInvoiceViewModel(private val repository: WebServiceRepository) : Vie
     private val _state = mutableStateOf(ImportInvoiceState())
     val state: State<ImportInvoiceState> = _state
 
-    init {
-        loadAvailableProducts()
+    private var userId: String? = null
+
+    fun setUserId(id: String) {
+        userId = id
+        loadUserProducts()
     }
 
-    private fun loadAvailableProducts() {
+    private fun loadUserProducts() {
         viewModelScope.launch {
-            when (val result = repository.getAllProducts()) {
-                is Resource.Success -> {
-                    _state.value = _state.value.copy(availableProducts = result.data ?: emptyList())
-                }
-                is Resource.Error -> {
-                    _state.value = _state.value.copy(error = "Failed to load products: ${result.message}")
+            _state.value = _state.value.copy(isLoading = true)
+            
+            userId?.let { id ->
+                when (val result = repository.getProductsByUserId(id)) {
+                    is Resource.Success -> {
+                        _state.value = _state.value.copy(
+                            availableProducts = result.data ?: emptyList(),
+                            isLoading = false,
+                            error = null
+                        )
+                    }
+                    is Resource.Error -> {
+                        _state.value = _state.value.copy(
+                            isLoading = false,
+                            error = "Failed to load products: ${result.message}"
+                        )
+                    }
                 }
             }
         }
-    }
-
-    fun setUserId(userId: String) {
-        _state.value = _state.value.copy(invoice = _state.value.invoice.copy(userId = userId))
     }
 
     fun toggleProductSelection(product: Product) {
@@ -55,9 +66,56 @@ class ImportInvoiceViewModel(private val repository: WebServiceRepository) : Vie
         } else {
             currentSelected.add(product)
         }
-        _state.value = _state.value.copy(selectedProducts = currentSelected)
+        _state.value = _state.value.copy(
+            selectedProducts = currentSelected,
+            invoice = _state.value.invoice.copy(
+                items = currentSelected
+            )
+        )
+    }
 
-        updateInvoiceDetails(items = currentSelected)
+    fun createInvoiceAndTransaction() {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(isLoading = true, error = null, success = false)
+
+            if (_state.value.selectedProducts.isEmpty()) {
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = "Debe seleccionar al menos un producto"
+                )
+                return@launch
+            }
+
+            try {
+                val invoice = _state.value.invoice.copy(
+                    date = Date(),
+                    amount = _state.value.selectedProducts.size.toDouble(),
+                    items = _state.value.selectedProducts,
+                    status = _state.value.invoice.status.ifEmpty { "PENDING" }
+                )
+
+                when (val result = repository.createInvoice(invoice)) {
+                    is Resource.Success -> {
+                        _state.value = _state.value.copy(
+                            isLoading = false,
+                            success = true,
+                            error = null
+                        )
+                    }
+                    is Resource.Error -> {
+                        _state.value = _state.value.copy(
+                            isLoading = false,
+                            error = "Failed to create invoice: ${result.message}"
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = "An error occurred: ${e.message}"
+                )
+            }
+        }
     }
 
     fun updateInvoiceDetails(
@@ -83,75 +141,5 @@ class ImportInvoiceViewModel(private val repository: WebServiceRepository) : Vie
 
     fun updateSelectedDocument(document: ByteArray) {
         updateInvoiceDetails(document = document)
-    }
-
-    fun createInvoiceAndTransaction() {
-        viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true, error = null, success = false)
-
-            if (_state.value.selectedProducts.isEmpty()) {
-                _state.value = _state.value.copy(
-                    isLoading = false,
-                    error = "Debe seleccionar al menos un producto"
-                )
-                return@launch
-            }
-
-            val updatedInvoice = _state.value.invoice.copy(
-                date = Date(),
-                items = _state.value.selectedProducts,
-                dueDate = _state.value.invoice.dueDate ?: Date(),
-                status = _state.value.invoice.status.ifEmpty { "PENDING" }
-            )
-
-            _state.value = _state.value.copy(
-                debugInfo = "Enviando: ${updatedInvoice.toInvoiceDTO()}\nDocumento: ${_state.value.selectedDocument != null}"
-            )
-
-            val invoiceResult = repository.createInvoice(updatedInvoice)
-            when (invoiceResult) {
-                is Resource.Success -> {
-                    val createdInvoice = invoiceResult.data
-                    createdInvoice?.let { invoice ->
-                        val transaction = Transaction(
-                            id = UUID.randomUUID().toString(),
-                            amount = invoice.amount,
-                            date = invoice.date,
-                            details = "Invoice ${invoice.id} created",
-                            invoiceId = invoice.id,
-                            userId = invoice.userId,
-                            type = "Income",
-                            income = true
-                        )
-
-                        val transactionResult = repository.createTransaction(transaction)
-                        when (transactionResult) {
-                            is Resource.Success -> {
-                                _state.value = _state.value.copy(
-                                    isLoading = false,
-                                    success = true,
-                                    error = null,
-                                    debugInfo = _state.value.debugInfo + "\n\nRespuesta: $createdInvoice"
-                                )
-                            }
-                            is Resource.Error -> {
-                                _state.value = _state.value.copy(
-                                    isLoading = false,
-                                    error = "Transaction creation failed: ${transactionResult.message}",
-                                    debugInfo = _state.value.debugInfo + "\n\nError en transacción: ${transactionResult.message}"
-                                )
-                            }
-                        }
-                    }
-                }
-                is Resource.Error -> {
-                    _state.value = _state.value.copy(
-                        isLoading = false,
-                        error = "Invoice creation failed: ${invoiceResult.message}",
-                        debugInfo = _state.value.debugInfo + "\n\nError en factura: ${invoiceResult.message}"
-                    )
-                }
-            }
-        }
     }
 }

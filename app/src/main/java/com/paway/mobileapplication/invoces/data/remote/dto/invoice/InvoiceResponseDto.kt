@@ -1,30 +1,48 @@
 package com.paway.mobileapplication.invoces.data.remote.dto.invoice
 
 import com.paway.mobileapplication.invoces.domain.model.invoice.Invoice
-import java.util.Date
 import android.util.Base64
 import com.paway.mobileapplication.inventory.domain.Product
-
+import com.google.gson.annotations.SerializedName
+import java.text.SimpleDateFormat
+import java.util.*
 
 data class InvoiceResponseDto(
     val id: String,
-    val date: Date,
+    @SerializedName("date")
+    val dateStr: String,
     val amount: Double,
     val status: String,
-    val items: List<Product>, // Ahora directamente usa Product
+    val items: List<Product>,
     val userId: String,
-    val dueDate: Date,
-    val document: String? // Representa el documento en base64
-)
+    @SerializedName("dueDate")
+    val dueDateStr: String,
+    val document: String?
+) {
 
-// Mapeo de InvoiceResponseDto a Invoice
-fun InvoiceResponseDto.toInvoice() = Invoice(
-    id = id,
-    date = date,
-    amount = amount,
-    status = status,
-    items = items, // Se asigna directamente ya que ahora son Product
-    userId = userId,
-    dueDate = dueDate,
-    document = document?.let { Base64.decode(it, Base64.DEFAULT) }
-)
+}
+
+fun InvoiceResponseDto.toInvoice(): Invoice {
+    val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    
+    return Invoice(
+        id = id,
+        date = try {
+            dateStr.let { dateFormat.parse(it) } ?: Date()
+        } catch (e: Exception) {
+            println("Error parsing date: $dateStr")
+            Date()
+        },
+        amount = amount,
+        status = status,
+        items = items,
+        userId = userId,
+        dueDate = try {
+            dueDateStr.let { dateFormat.parse(it) } ?: Date()
+        } catch (e: Exception) {
+            println("Error parsing dueDate: $dueDateStr")
+            Date()
+        },
+        document = document?.let { Base64.decode(it, Base64.DEFAULT) }
+    )
+}

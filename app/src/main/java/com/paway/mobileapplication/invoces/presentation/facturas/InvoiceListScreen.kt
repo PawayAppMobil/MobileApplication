@@ -21,6 +21,9 @@ fun InvoiceListScreen(viewModel: InvoiceListViewModel, userId: String? = null) {
     val state by viewModel.state.collectAsState()
 
     LaunchedEffect(userId) {
+        if (userId.isNullOrEmpty()) {
+            println("Warning: userId is null or empty")
+        }
         userId?.let { viewModel.setUserId(it) }
     }
 
@@ -31,6 +34,32 @@ fun InvoiceListScreen(viewModel: InvoiceListViewModel, userId: String? = null) {
     ) {
         HeaderA()
         Spacer(modifier = Modifier.height(16.dp))
+        
+        // Debug Info Card
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            )
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    "Debug Information",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("User ID: ${userId ?: "null"}")
+                Text("Loading State: ${state.isLoading}")
+                Text("Has Error: ${state.error != null}")
+                Text("Invoices Count: ${state.invoices.size}")
+            }
+        }
+
         Text(
             "FACTURAS IMPORTADAS",
             fontWeight = FontWeight.Bold,
@@ -41,18 +70,78 @@ fun InvoiceListScreen(viewModel: InvoiceListViewModel, userId: String? = null) {
 
         when {
             state.isLoading -> {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                )
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    CircularProgressIndicator()
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("Cargando facturas para usuario: $userId")
+                }
             }
             state.error != null -> {
-                Text(
-                    text = state.error ?: "Error desconocido",
-                    color = Color.Red,
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                )
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0xFFFFEBEE)
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Error al cargar facturas",
+                            color = Color.Red,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = state.error ?: "Error desconocido",
+                            color = Color.Red,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        if (state.error?.contains("Empty response body") == true) {
+                            Text(
+                                text = "El servidor respondió exitosamente pero sin datos",
+                                color = Color(0xFF795548),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
+                }
+            }
+            state.invoices.isEmpty() -> {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0xFFFFF3E0)
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "No se encontraron facturas",
+                            color = Color(0xFFE65100),
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Text(
+                            text = "Usuario ID: $userId",
+                            color = Color(0xFFE65100),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
             }
             else -> {
+                Text(
+                    "Facturas encontradas: ${state.invoices.size}",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
                 InvoiceList(state.invoices)
             }
         }

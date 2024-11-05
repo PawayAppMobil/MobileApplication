@@ -23,18 +23,37 @@ class InvoiceListViewModel(
 
     private var userId: String? = null
 
-    fun setUserId(id: String) {
+    fun setUserId(id: String?) {
+        if (id.isNullOrEmpty()) {
+            _state.value = _state.value.copy(
+                isLoading = false,
+                error = "User ID cannot be null or empty"
+            )
+            return
+        }
+        
         userId = id
         loadInvoices()
     }
 
     fun loadInvoices() {
         viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true)
+            _state.value = _state.value.copy(isLoading = true, error = null)
             
-            userId?.let { id ->
-                when (val result = repository.getInvoicesByUserId(id)) {
+            val currentUserId = userId
+            if (currentUserId.isNullOrEmpty()) {
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = "User ID is not set. Please ensure you're logged in."
+                )
+                return@launch
+            }
+
+            try {
+                println("🔍 Attempting to load invoices for user: $currentUserId")
+                when (val result = repository.getInvoicesByUserId(currentUserId)) {
                     is Resource.Success -> {
+                        println("✅ Successfully loaded invoices for user: $currentUserId")
                         _state.value = _state.value.copy(
                             invoices = result.data ?: emptyList(),
                             isLoading = false,
@@ -42,16 +61,19 @@ class InvoiceListViewModel(
                         )
                     }
                     is Resource.Error -> {
+                        println("❌ Error loading invoices for user: $currentUserId")
+                        println("Error details: ${result.message}")
                         _state.value = _state.value.copy(
                             isLoading = false,
-                            error = result.message ?: "An unexpected error occurred"
+                            error = "Error loading invoices: ${result.message}"
                         )
                     }
                 }
-            } ?: run {
+            } catch (e: Exception) {
+                println("💥 Exception while loading invoices: ${e.message}")
                 _state.value = _state.value.copy(
                     isLoading = false,
-                    error = "User ID not set"
+                    error = "An unexpected error occurred: ${e.message}"
                 )
             }
         }
