@@ -1,6 +1,7 @@
 package com.paway.mobileapplication.invoces.data.remote
 
 import com.paway.mobileapplication.inventory.data.remote.ProductDto
+import com.paway.mobileapplication.invoces.data.remote.dto.invoice.CreateInvoiceResponse
 import com.paway.mobileapplication.invoces.data.remote.dto.invoice.InvoiceRequestDto
 import com.paway.mobileapplication.invoces.data.remote.dto.invoice.InvoiceResponseDto
 import com.paway.mobileapplication.invoces.data.remote.dto.transaction.TransactionRequestDto
@@ -25,8 +26,8 @@ interface WebService {
     @GET("/api/invoices/")
     suspend fun getAllInvoices(): Response<List<InvoiceResponseDto>>
 
-    @POST("/api/invoices/")
-    suspend fun createInvoice(@Body invoice: InvoiceRequestDto): Response<InvoiceResponseDto>
+    @POST("invoices")
+    suspend fun createInvoice(@Body invoice: InvoiceRequestDto): Response<CreateInvoiceResponse>
 
     @Multipart
     @POST("/api/invoices/{id}/document")

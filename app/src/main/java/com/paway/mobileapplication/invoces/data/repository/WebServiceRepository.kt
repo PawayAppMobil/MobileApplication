@@ -14,6 +14,8 @@ import com.paway.mobileapplication.invoces.data.remote.dto.transaction.toTransac
 import com.paway.mobileapplication.invoces.domain.model.transaction.Transaction
 import okhttp3.MultipartBody
 import java.util.*
+import okhttp3.RequestBody
+import okhttp3.MediaType
 
 
 class WebServiceRepository(private val webService: WebService) {
@@ -88,8 +90,8 @@ class WebServiceRepository(private val webService: WebService) {
     suspend fun createInvoice(invoice: Invoice): Resource<Invoice> = withContext(Dispatchers.IO) {
         val response = webService.createInvoice(invoice.toInvoiceRequestDto())
         if (response.isSuccessful) {
-            response.body()?.let { invoiceResponseDto ->
-                return@withContext Resource.Success(data = invoiceResponseDto.toInvoice())
+            response.body()?.let { createInvoiceResponse ->
+                return@withContext Resource.Success(data = createInvoiceResponse.invoice.toInvoice())
             }
             return@withContext Resource.Error("Empty response body")
         }
@@ -160,5 +162,29 @@ class WebServiceRepository(private val webService: WebService) {
             return@withContext Resource.Error("Empty response body")
         }
         return@withContext Resource.Error(response.message())
+    }
+
+    suspend fun uploadInvoiceDocument(invoiceId: String, document: ByteArray): Resource<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val requestFile = RequestBody.create(
+                MediaType.parse("application/octet-stream"),
+                document
+            )
+            
+            val documentPart = MultipartBody.Part.createFormData(
+                "document",
+                "invoice_document",
+                requestFile
+            )
+
+            val response = webService.uploadInvoiceDocument(invoiceId, documentPart)
+            
+            if (response.isSuccessful) {
+                return@withContext Resource.Success(Unit)
+            }
+            return@withContext Resource.Error("Failed to upload document: ${response.message()}")
+        } catch (e: Exception) {
+            return@withContext Resource.Error(e.message ?: "An error occurred uploading document")
+        }
     }
 }

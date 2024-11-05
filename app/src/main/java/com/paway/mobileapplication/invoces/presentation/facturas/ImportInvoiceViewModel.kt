@@ -32,6 +32,9 @@ class ImportInvoiceViewModel(private val repository: WebServiceRepository) : Vie
 
     fun setUserId(id: String) {
         userId = id
+        _state.value = _state.value.copy(
+            invoice = _state.value.invoice.copy(userId = id)
+        )
         loadUserProducts()
     }
 
@@ -86,26 +89,57 @@ class ImportInvoiceViewModel(private val repository: WebServiceRepository) : Vie
                 return@launch
             }
 
+            if (userId.isNullOrEmpty()) {
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = "User ID is not set"
+                )
+                return@launch
+            }
+
             try {
+                // 1. Crear Invoice
                 val invoice = _state.value.invoice.copy(
                     date = Date(),
                     amount = _state.value.selectedProducts.size.toDouble(),
                     items = _state.value.selectedProducts,
+                    userId = userId ?: "",
                     status = _state.value.invoice.status.ifEmpty { "PENDING" }
                 )
 
-                when (val result = repository.createInvoice(invoice)) {
+                when (val invoiceResult = repository.createInvoice(invoice)) {
                     is Resource.Success -> {
-                        _state.value = _state.value.copy(
-                            isLoading = false,
-                            success = true,
-                            error = null
-                        )
+                        invoiceResult.data?.let { createdInvoice ->
+                            // 2. Subir documento si existe
+                            _state.value.selectedDocument?.let { document ->
+                                val documentResult = repository.uploadInvoiceDocument(
+                                    createdInvoice.id,
+                                    document
+                                )
+                                if (documentResult is Resource.Error) {
+                                    _state.value = _state.value.copy(
+                                        error = "Invoice created but failed to upload document: ${documentResult.message}"
+                                    )
+                                    return@launch
+                                }
+                            }
+
+                            _state.value = _state.value.copy(
+                                isLoading = false,
+                                success = true,
+                                error = null
+                            )
+                        } ?: run {
+                            _state.value = _state.value.copy(
+                                isLoading = false,
+                                error = "Created invoice data is null"
+                            )
+                        }
                     }
                     is Resource.Error -> {
                         _state.value = _state.value.copy(
                             isLoading = false,
-                            error = "Failed to create invoice: ${result.message}"
+                            error = "Failed to create invoice: ${invoiceResult.message}"
                         )
                     }
                 }

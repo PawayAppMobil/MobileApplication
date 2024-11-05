@@ -90,4 +90,34 @@ class InvoiceListViewModel(
     fun discardInvoices() {
         // Implement discard invoices logic
     }
+
+    fun updateInvoice(invoice: Invoice) {
+        viewModelScope.launch {
+            when (val result = repository.updateInvoice(invoice.id, invoice)) {
+                is Resource.Success -> {
+                    loadInvoices()
+                }
+                is Resource.Error -> {
+                    _state.value = _state.value.copy(
+                        error = "Error updating invoice: ${result.message}"
+                    )
+                }
+            }
+        }
+    }
+
+    fun deleteInvoice(invoiceId: String) {
+        viewModelScope.launch {
+            when (val result = repository.deleteInvoice(invoiceId)) {
+                is Resource.Success -> {
+                    loadInvoices()
+                }
+                is Resource.Error -> {
+                    _state.value = _state.value.copy(
+                        error = "Error deleting invoice: ${result.message}"
+                    )
+                }
+            }
+        }
+    }
 } 

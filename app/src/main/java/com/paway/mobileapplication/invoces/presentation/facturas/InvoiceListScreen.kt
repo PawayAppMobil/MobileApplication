@@ -12,19 +12,29 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.paway.mobileapplication.invoces.domain.model.invoice.Invoice
+import java.text.SimpleDateFormat
+import java.util.*
 
 @Composable
 fun InvoiceListScreen(viewModel: InvoiceListViewModel, userId: String? = null) {
     val state by viewModel.state.collectAsState()
+    var selectedInvoice by remember { mutableStateOf<Invoice?>(null) }
 
     LaunchedEffect(userId) {
-        if (userId.isNullOrEmpty()) {
-            println("Warning: userId is null or empty")
-        }
         userId?.let { viewModel.setUserId(it) }
+    }
+
+    if (selectedInvoice != null) {
+        InvoiceDetailDialog(
+            invoice = selectedInvoice!!,
+            onDismiss = { selectedInvoice = null },
+            onConfirm = { viewModel.updateInvoice(it) },
+            onDiscard = { viewModel.deleteInvoice(it.id) }
+        )
     }
 
     Column(
@@ -35,7 +45,6 @@ fun InvoiceListScreen(viewModel: InvoiceListViewModel, userId: String? = null) {
         HeaderA()
         Spacer(modifier = Modifier.height(16.dp))
         
-        // Debug Info Card
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -44,15 +53,12 @@ fun InvoiceListScreen(viewModel: InvoiceListViewModel, userId: String? = null) {
                 containerColor = MaterialTheme.colorScheme.surfaceVariant
             )
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
+            Column(modifier = Modifier.padding(16.dp)) {
                 Text(
                     "Debug Information",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
-                Spacer(modifier = Modifier.height(8.dp))
                 Text("User ID: ${userId ?: "null"}")
                 Text("Loading State: ${state.isLoading}")
                 Text("Has Error: ${state.error != null}")
@@ -68,100 +74,126 @@ fun InvoiceListScreen(viewModel: InvoiceListViewModel, userId: String? = null) {
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        when {
-            state.isLoading -> {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    CircularProgressIndicator()
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text("Cargando facturas para usuario: $userId")
-                }
-            }
-            state.error != null -> {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFFFFEBEE)
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+        ) {
+            when {
+                state.isLoading -> {
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center)
                     )
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "Error al cargar facturas",
-                            color = Color.Red,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = state.error ?: "Error desconocido",
-                            color = Color.Red,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        if (state.error?.contains("Empty response body") == true) {
-                            Text(
-                                text = "El servidor respondió exitosamente pero sin datos",
-                                color = Color(0xFF795548),
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
-                    }
                 }
-            }
-            state.invoices.isEmpty() -> {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFFFFF3E0)
+                state.error != null -> {
+                    ErrorCard(state.error!!)
+                }
+                state.invoices.isEmpty() -> {
+                    EmptyStateCard(userId)
+                }
+                else -> {
+                    InvoiceList(
+                        invoices = state.invoices,
+                        onInvoiceClick = { selectedInvoice = it }
                     )
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "No se encontraron facturas",
-                            color = Color(0xFFE65100),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Text(
-                            text = "Usuario ID: $userId",
-                            color = Color(0xFFE65100),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
                 }
-            }
-            else -> {
-                Text(
-                    "Facturas encontradas: ${state.invoices.size}",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                InvoiceList(state.invoices)
             }
         }
         
         Spacer(modifier = Modifier.height(16.dp))
-        ActionButtons(viewModel)
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun InvoiceList(invoices: List<Invoice>) {
+fun InvoiceDetailDialog(
+    invoice: Invoice,
+    onDismiss: () -> Unit,
+    onConfirm: (Invoice) -> Unit,
+    onDiscard: (Invoice) -> Unit
+) {
+    var editedInvoice by remember { mutableStateOf(invoice) }
+    var showDatePicker by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Detalle de Factura") },
+        text = {
+            Column {
+                Text("ID: ${invoice.id}")
+                Text("Usuario: ${invoice.userId}")
+                Text("Monto: S/ ${invoice.amount}")
+                Text("Estado: ${invoice.status}")
+                Text("Fecha: ${SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(invoice.date)}")
+                Text("Fecha Vencimiento: ${SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(invoice.dueDate)}")
+                
+                OutlinedTextField(
+                    value = editedInvoice.status,
+                    onValueChange = { editedInvoice = editedInvoice.copy(status = it) },
+                    label = { Text("Estado") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Button(
+                    onClick = { showDatePicker = true },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Cambiar Fecha Vencimiento")
+                }
+
+                if (showDatePicker) {
+                    DatePickerDialog(
+                        onDismissRequest = { showDatePicker = false },
+                        confirmButton = {
+                            Button(onClick = {
+                                showDatePicker = false
+                            }) {
+                                Text("OK")
+                            }
+                        }
+                    ) {
+                        DatePicker(
+                            state = rememberDatePickerState(),
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Row {
+                TextButton(onClick = { onConfirm(editedInvoice) }) {
+                    Text("Confirmar")
+                }
+                TextButton(onClick = { onDiscard(invoice) }) {
+                    Text("Descartar")
+                }
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cerrar")
+            }
+        }
+    )
+}
+
+@Composable
+fun InvoiceList(
+    invoices: List<Invoice>,
+    onInvoiceClick: (Invoice) -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp)
     ) {
         LazyColumn(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier
+                .padding(16.dp)
+                .height(400.dp)
         ) {
             items(invoices) { invoice ->
-                InvoiceItem(invoice)
+                InvoiceItem(invoice, onInvoiceClick)
                 Spacer(modifier = Modifier.height(8.dp))
             }
         }
@@ -169,9 +201,12 @@ fun InvoiceList(invoices: List<Invoice>) {
 }
 
 @Composable
-fun InvoiceItem(invoice: Invoice) {
+fun InvoiceItem(
+    invoice: Invoice,
+    onInvoiceClick: (Invoice) -> Unit
+) {
     Button(
-        onClick = { /* Handle invoice selection */ },
+        onClick = { onInvoiceClick(invoice) },
         modifier = Modifier.fillMaxWidth(),
         colors = ButtonDefaults.buttonColors(containerColor = Color.Blue),
         shape = RoundedCornerShape(8.dp)
@@ -194,7 +229,7 @@ fun InvoiceItem(invoice: Invoice) {
                 color = Color.White
             )
             Text(
-                text = "Fecha de vencimiento: ${invoice.dueDate}",
+                text = "Fecha de vencimiento: ${SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(invoice.dueDate)}",
                 color = Color.White
             )
         }
@@ -222,25 +257,86 @@ fun HeaderA() {
     }
 }
 
+
 @Composable
-fun ActionButtons(viewModel: InvoiceListViewModel) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+fun ErrorCard(errorMessage: String) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFFFEBEE)
+        )
     ) {
-        ActionButton("Revisar Detalles") { viewModel.reviewDetails() }
-        ActionButton("Confirmar") { viewModel.confirmInvoices() }
-        ActionButton("Descartar") { viewModel.discardInvoices() }
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Error",
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.Red,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = errorMessage,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color(0xFFB71C1C),
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Icon(
+                imageVector = Icons.Default.Notifications,
+                contentDescription = "Error Icon",
+                tint = Color.Red,
+                modifier = Modifier.size(32.dp)
+            )
+        }
     }
 }
 
 @Composable
-fun ActionButton(text: String, onClick: () -> Unit) {
-    Button(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF012E2E)),
-        shape = RoundedCornerShape(8.dp)
+fun EmptyStateCard(userId: String?) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFF5F5F5)
+        )
     ) {
-        Text(text, color = Color.White)
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.Notifications,
+                contentDescription = "Empty State Icon",
+                tint = Color.Gray,
+                modifier = Modifier
+                    .size(64.dp)
+                    .padding(bottom = 16.dp)
+            )
+            Text(
+                text = "No se encontraron facturas",
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.Gray,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = if (userId != null) 
+                    "No hay facturas registradas para el usuario: $userId" 
+                else 
+                    "Por favor, inicie sesión para ver sus facturas",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Gray,
+                textAlign = TextAlign.Center
+            )
+        }
     }
 }
