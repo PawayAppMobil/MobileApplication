@@ -14,7 +14,7 @@ interface WebService {
     @GET("/api/invoices/{id}/")
     suspend fun getInvoice(@Path("id") id: String): Response<InvoiceResponseDto>
 
-    @PUT("/api/invoices/{id}/")
+    @PUT("invoices/{id}")
     suspend fun updateInvoice(@Path("id") id: String, @Body invoice: InvoiceRequestDto): Response<InvoiceResponseDto>
 
     @DELETE("/api/invoices/{id}/")

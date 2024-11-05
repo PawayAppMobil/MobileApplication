@@ -47,14 +47,42 @@ class WebServiceRepository(private val webService: WebService) {
     }
 
     suspend fun updateInvoice(id: String, invoice: Invoice): Resource<Invoice> = withContext(Dispatchers.IO) {
-        val response = webService.updateInvoice(id, invoice.toInvoiceRequestDto())
-        if (response.isSuccessful) {
-            response.body()?.let { invoiceDto ->
-                return@withContext Resource.Success(data = invoiceDto.toInvoice())
+        try {
+            println("📤 Iniciando actualización de factura")
+            println("ID: $id")
+            println("URL completa: ${webService.javaClass.methods.find { it.name == "updateInvoice" }?.annotations?.toString()}")
+            
+            val response = webService.updateInvoice(id, invoice.toInvoiceRequestDto())
+
+            if (response.isSuccessful) {
+                response.body()?.let { invoiceDto ->
+                    return@withContext Resource.Success(data = invoiceDto.toInvoice())
+                }
+                return@withContext Resource.Error("Empty response body")
             }
-            return@withContext Resource.Error("Empty response body")
+            
+            val errorBody = response.errorBody()?.string()
+            println("❌ Error body: $errorBody")
+            println("❌ Response message: ${response.message()}")
+            
+            return@withContext Resource.Error(
+                """
+                Error HTTP ${response.code()}
+                Message: ${response.message()}
+                Error body: $errorBody
+                """.trimIndent()
+            )
+        } catch (e: Exception) {
+            println("💥 Exception: ${e.message}")
+            println("Stack trace: ${e.stackTraceToString()}")
+            return@withContext Resource.Error(
+                """
+                Error de red
+                Tipo: ${e.javaClass.simpleName}
+                Mensaje: ${e.message}
+                """.trimIndent()
+            )
         }
-        return@withContext Resource.Error(response.message())
     }
 
     suspend fun deleteInvoice(id: String): Resource<Unit> = withContext(Dispatchers.IO) {

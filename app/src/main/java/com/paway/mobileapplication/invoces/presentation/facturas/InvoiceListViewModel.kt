@@ -3,6 +3,7 @@ package com.paway.mobileapplication.invoces.presentation.facturas
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.paway.mobileapplication.inventory.common.Resource
+import com.paway.mobileapplication.invoces.data.remote.dto.invoice.toInvoiceRequestDto
 import com.paway.mobileapplication.invoces.data.repository.WebServiceRepository
 import com.paway.mobileapplication.invoces.domain.model.invoice.Invoice
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -93,15 +94,69 @@ class InvoiceListViewModel(
 
     fun updateInvoice(invoice: Invoice) {
         viewModelScope.launch {
-            when (val result = repository.updateInvoice(invoice.id, invoice)) {
-                is Resource.Success -> {
-                    loadInvoices()
+            _state.value = _state.value.copy(isLoading = true)
+            
+            if (invoice.id.isEmpty()) {
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = "Error: ID de factura vacío"
+                )
+                return@launch
+            }
+
+            try {
+                val requestJson = invoice.toInvoiceRequestDto()
+                println("🔍 Validación de datos:")
+                println("ID de factura: ${invoice.id}")
+                println("URL esperada: /invoices/${invoice.id}")
+                println("Request JSON: $requestJson")
+                
+                when (val result = repository.updateInvoice(invoice.id, invoice)) {
+                    is Resource.Success -> {
+                        println("✅ Factura actualizada exitosamente")
+                        loadInvoices()
+                    }
+                    is Resource.Error -> {
+                        val errorDetails = when {
+                            result.message?.contains("404") == true -> {
+                                """
+                                Error 404: Factura no encontrada
+                                ID: ${invoice.id}
+                                Detalles adicionales: ${result.message}
+                                Esto es inesperado ya que la factura existe en la lista.
+                                Por favor, contacte al soporte técnico.
+                                """
+                            }
+                            result.message?.contains("400") == true -> {
+                                """
+                                Error 400: Datos inválidos
+                                - Asegúrese de que todos los campos requeridos estén presentes
+                                - Verifique el formato de las fechas
+                                - Verifique el formato de los IDs de productos
+                                Detalles: ${result.message}
+                                """
+                            }
+                            else -> "Error desconocido: ${result.message}"
+                        }.trimIndent()
+
+                        _state.value = _state.value.copy(
+                            isLoading = false,
+                            error = errorDetails
+                        )
+                    }
                 }
-                is Resource.Error -> {
-                    _state.value = _state.value.copy(
-                        error = "Error updating invoice: ${result.message}"
-                    )
-                }
+            } catch (e: Exception) {
+                val errorMessage = """
+                    Error inesperado al actualizar la factura
+                    Tipo: ${e.javaClass.simpleName}
+                    Mensaje: ${e.message}
+                    Por favor, intente nuevamente o contacte al soporte técnico.
+                """.trimIndent()
+
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = errorMessage
+                )
             }
         }
     }

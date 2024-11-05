@@ -18,6 +18,8 @@ import androidx.compose.ui.unit.sp
 import com.paway.mobileapplication.invoces.domain.model.invoice.Invoice
 import java.text.SimpleDateFormat
 import java.util.*
+import com.google.gson.GsonBuilder
+import com.paway.mobileapplication.invoces.data.remote.dto.invoice.toInvoiceRequestDto
 
 @Composable
 fun InvoiceListScreen(viewModel: InvoiceListViewModel, userId: String? = null) {
@@ -114,6 +116,8 @@ fun InvoiceDetailDialog(
 ) {
     var editedInvoice by remember { mutableStateOf(invoice) }
     var showDatePicker by remember { mutableStateOf(false) }
+    var showJsonDialog by remember { mutableStateOf(false) }
+    var jsonContent by remember { mutableStateOf("") }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -141,6 +145,17 @@ fun InvoiceDetailDialog(
                     Text("Cambiar Fecha Vencimiento")
                 }
 
+                Button(
+                    onClick = {
+                        val gson = GsonBuilder().setPrettyPrinting().create()
+                        jsonContent = gson.toJson(editedInvoice.toInvoiceRequestDto())
+                        showJsonDialog = true
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Ver JSON a enviar")
+                }
+
                 if (showDatePicker) {
                     DatePickerDialog(
                         onDismissRequest = { showDatePicker = false },
@@ -157,6 +172,26 @@ fun InvoiceDetailDialog(
                             modifier = Modifier.padding(16.dp)
                         )
                     }
+                }
+
+                if (showJsonDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showJsonDialog = false },
+                        title = { Text("JSON Preview") },
+                        text = { 
+                            Column {
+                                Text("ID para PUT: ${invoice.id}")
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text("JSON Body:")
+                                Text(jsonContent)
+                            }
+                        },
+                        confirmButton = {
+                            Button(onClick = { showJsonDialog = false }) {
+                                Text("Close")
+                            }
+                        }
+                    )
                 }
             }
         },
