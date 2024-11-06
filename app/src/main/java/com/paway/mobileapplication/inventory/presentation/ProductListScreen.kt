@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -20,7 +21,8 @@ import com.paway.mobileapplication.inventory.domain.Product
 @Composable
 fun ProductListScreen(
     viewModel: ProductListViewModel,
-    onProductClick: (String) -> Unit
+    onProductClick: (String) -> Unit,
+
 ) {
     val state = viewModel.state.value
     val name = viewModel.name.value
@@ -31,7 +33,14 @@ fun ProductListScreen(
     )
 
 
-    Scaffold { paddingValues ->
+    Scaffold(
+            floatingActionButton = {
+                FloatingActionButton(onClick ={} ) {
+                    Icon(Icons.Default.Add, contentDescription = "Add Product")
+                }
+            }
+
+    ) { paddingValues ->
         Column(
             modifier = Modifier.padding(paddingValues)
                 .background(Color(0xffd9d9d9)),
@@ -133,7 +142,7 @@ fun ProductItem(product: Product,backgroundColor:Color ,onFavoritePressed: () ->
                     .weight(3f)
 
             ) {
-                Text(product.name)
+                Text(product.productName)
                 Text(product.stock.toString())
             }
 
@@ -151,3 +160,4 @@ fun ProductItem(product: Product,backgroundColor:Color ,onFavoritePressed: () ->
     }
 
 }
+

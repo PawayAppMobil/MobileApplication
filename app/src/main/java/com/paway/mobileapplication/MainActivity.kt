@@ -84,7 +84,7 @@ fun MainScreen(userId: String?) {
         ) {
             when (selectedScreen) {
                 "home" -> HomeScreen(userId)
-                "inventory" -> InventoryScreen()
+                "inventory" -> InventoryScreen(userId)
                 "invoice" -> InvoiceScreen(userId)
                 "balance" -> BalanceScreen()
             }
@@ -127,11 +127,11 @@ fun HomeScreen(userId: String?) {
 }
 
 @Composable
-fun InventoryScreen() {
+fun InventoryScreen(userId: String?) {
     val context = LocalContext.current
     val database = Room.databaseBuilder(
         context,
-        AppDataBase::class.java, "product-database"
+        AppDataBase::class.java, "product-databasev2"
     ).build()
 
     val retrofit = Retrofit.Builder()
@@ -144,7 +144,7 @@ fun InventoryScreen() {
     val productRepository = ProductRepository(productService, productDao)
     val getProductByIdUseCase = GetProductByIdUseCase(productRepository)
 
-    val productListViewModel = ProductListViewModel(productRepository)
+    val productListViewModel = ProductListViewModel(productRepository, userId = userId ?: "")
     val productDetailViewModel = ProductDetailViewModel(getProductByIdUseCase)
 
     AppContent(productListViewModel, productDetailViewModel)
@@ -232,6 +232,7 @@ fun AppContent(
                     productDetailViewModel.getProductById(productId)
                     setCurrentScreen(Screen.ProductDetail(productId))
                 }
+
             )
         }
         is Screen.ProductDetail -> {

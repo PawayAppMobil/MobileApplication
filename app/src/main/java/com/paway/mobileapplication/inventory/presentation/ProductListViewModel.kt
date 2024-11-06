@@ -9,8 +9,10 @@ import com.paway.mobileapplication.inventory.common.UIState
 import com.paway.mobileapplication.inventory.data.repository.ProductRepository
 import com.paway.mobileapplication.inventory.domain.Product
 import kotlinx.coroutines.launch
-
-class ProductListViewModel(private val repository: ProductRepository): ViewModel() {
+class ProductListViewModel(
+    private val repository: ProductRepository,
+    private val userId: String
+) : ViewModel() {
 
     private val _name = mutableStateOf("")
     val name: State<String> get() = _name
@@ -18,18 +20,14 @@ class ProductListViewModel(private val repository: ProductRepository): ViewModel
     private val _state = mutableStateOf(UIState<List<Product>>())
     val state: State<UIState<List<Product>>> get() = _state
 
-    fun onNameChanged(name: String) {
-        _name.value = name
-    }
-
     init {
-        getAllProducts()
+        getAllProductsByUserId()
     }
 
-    private fun getAllProducts() {
+    private fun getAllProductsByUserId() {
         _state.value = UIState(isLoading = true)
         viewModelScope.launch {
-            val result = repository.getAllProducts()
+            val result = repository.getAllProductsByUserId(userId)
             if (result is Resource.Success) {
                 _state.value = UIState(data = result.data)
             } else {
@@ -38,19 +36,27 @@ class ProductListViewModel(private val repository: ProductRepository): ViewModel
         }
     }
 
-    fun searchProduct(){
+    fun refreshProducts() {
+        getAllProductsByUserId()
+    }
+
+    fun onNameChanged(name: String) {
+        _name.value = name
+    }
+
+    fun searchProduct() {
         _state.value = UIState(isLoading = true)
         viewModelScope.launch {
-            val result = repository.searchProduct(_name.value)
+            val result = repository.searchProduct(_name.value, userId)
             if (result is Resource.Success) {
                 _state.value = UIState(data = result.data)
             } else {
-                _state.value = UIState(error = result.message?: "An error occurred")
+                _state.value = UIState(error = result.message ?: "An error occurred")
             }
         }
     }
 
-    fun toggleFavorite(product: Product){
+    fun toggleFavorite(product: Product) {
         product.isFavorite = !product.isFavorite
         viewModelScope.launch {
             if (product.isFavorite) {
@@ -58,18 +64,18 @@ class ProductListViewModel(private val repository: ProductRepository): ViewModel
             } else {
                 repository.deleteProduct(product)
             }
-            val heroes = _state.value.data
+            val products = _state.value.data
             _state.value = UIState(data = emptyList())
-            _state.value = UIState(data = heroes)
+            _state.value = UIState(data = products)
         }
     }
 
     fun filterProductsByName() {
         _state.value = UIState(isLoading = true)
         viewModelScope.launch {
-            val result = repository.getAllProducts()
+            val result = repository.getAllProductsByUserId(userId)
             if (result is Resource.Success) {
-                val sortedProducts = result.data?.sortedBy { it.name }
+                val sortedProducts = result.data?.sortedBy { it.productName }
                 _state.value = UIState(data = sortedProducts)
             } else {
                 _state.value = UIState(error = result.message ?: "An error occurred")
@@ -80,7 +86,7 @@ class ProductListViewModel(private val repository: ProductRepository): ViewModel
     fun filterProductsByStock() {
         _state.value = UIState(isLoading = true)
         viewModelScope.launch {
-            val result = repository.getAllProducts()
+            val result = repository.getAllProductsByUserId(userId)
             if (result is Resource.Success) {
                 val sortedProducts = result.data?.sortedBy { it.stock }
                 _state.value = UIState(data = sortedProducts)
@@ -93,7 +99,7 @@ class ProductListViewModel(private val repository: ProductRepository): ViewModel
     fun filterProductsByFavorites() {
         _state.value = UIState(isLoading = true)
         viewModelScope.launch {
-            val result = repository.getAllProducts()
+            val result = repository.getAllProductsByUserId(userId)
             if (result is Resource.Success) {
                 val favoriteProducts = result.data?.filter { it.isFavorite }
                 _state.value = UIState(data = favoriteProducts)

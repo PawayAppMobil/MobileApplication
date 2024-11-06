@@ -24,8 +24,8 @@ class ProductRepository(
     }
 
 
-    suspend fun getAllProducts(): Resource<List<Product>> = withContext(Dispatchers.IO) {
-        val response = productService.searchProduct("") // Assuming an empty string returns all products
+    suspend fun getAllProductsByUserId(userId: String): Resource<List<Product>> = withContext(Dispatchers.IO) {
+        val response = productService.getProductsByUserId(userId)
         if (response.isSuccessful) {
             response.body()?.let { productsDto ->
                 val products = mutableListOf<Product>()
@@ -41,16 +41,12 @@ class ProductRepository(
         return@withContext Resource.Error(message = response.message())
     }
 
-    suspend fun searchProduct(name: String): Resource<List<Product>> = withContext(Dispatchers.IO) {
-        val response = productService.searchProduct(name)
+    suspend fun searchProduct(name: String, userId: String): Resource<List<Product>> = withContext(Dispatchers.IO) {
+        val response = productService.getProductsByUserId(userId)
         if (response.isSuccessful) {
             response.body()?.let { productsDto ->
-                val products = mutableListOf<Product>()
-                productsDto.forEach { productDto: ProductDto ->
-                    val product = productDto.toProduct()
-                    product.isFavorite = isFavorite(product.id)
-                    products.add(product)
-                }
+                val products = productsDto.filter { it.productName.contains(name, ignoreCase = true) }
+                    .map { it.toProduct() }
                 return@withContext Resource.Success(data = products)
             }
             return@withContext Resource.Error(message = "An error occurred")
@@ -59,11 +55,11 @@ class ProductRepository(
     }
 
     suspend fun insertProduct(product: Product) = withContext(Dispatchers.IO) {
-        productDao.insert(ProductEntity(product.id, product.name, product.stock))
+        productDao.insert(ProductEntity(product.id, product.productName,product.userId, product.stock))
     }
 
     suspend fun deleteProduct(product: Product) = withContext(Dispatchers.IO) {
-        productDao.delete(ProductEntity(product.id, product.name, product.stock))
+        productDao.delete(ProductEntity(product.id, product.productName,product.userId, product.stock))
     }
 
     suspend fun getProductById(id: String): Resource<Product> = withContext(Dispatchers.IO) {
@@ -82,4 +78,30 @@ class ProductRepository(
             return@withContext Resource.Error(message = e.message ?: "An unknown error occurred")
         }
     }
+
+
+
+    suspend fun createProduct(product: Product): Resource<Product> = withContext(Dispatchers.IO) {
+        try {
+            val productDto = ProductDto(
+                id = product.id,
+                userId = product.userId,
+                description = product.description,
+                price = product.price,
+                productName = product.productName,
+                stock = product.stock,
+                image = product.productName // Add image handling if necessary
+            )
+            val response = productService.createProduct(productDto)
+            if (response.isSuccessful) {
+                response.body()?.let {
+                    return@withContext Resource.Success(data = it.toProduct())
+                }
+            }
+            return@withContext Resource.Error(message = response.message())
+        } catch (e: Exception) {
+            return@withContext Resource.Error(message = e.message ?: "An unknown error occurred")
+        }
+    }
+
 }

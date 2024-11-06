@@ -51,9 +51,8 @@ fun ProductDetailScreen(
                 state.data != null -> {
                     val product = state.data
                     Text("ID del Producto: ${product?.id}")
-                    Text("Nombre del Producto: ${product?.name}")
+                    Text("Nombre del Producto: ${product?.productName}")
                     Text("Stock: ${product?.stock}")
-                    // Agrega otros detalles del producto aquí
                 }
                 else -> {
                     Text("No hay datos del producto disponibles")
