@@ -61,6 +61,8 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
 
+    implementation ("com.github.PhilJay:MPAndroidChart:v3.1.0")
+
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
     implementation(libs.glide)
