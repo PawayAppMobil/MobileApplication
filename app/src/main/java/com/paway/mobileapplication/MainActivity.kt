@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import com.paway.mobileapplication.common.RetrofitClient
 import com.paway.mobileapplication.reports.data.repository.WebServiceRepository
 import com.paway.mobileapplication.reports.presentation.facturas.InvoiceDashboardViewModel
+import com.paway.mobileapplication.reports.presentation.reports.ReportDetailScreen
 import com.paway.mobileapplication.reports.presentation.reports.ReportViewModel
 import com.paway.mobileapplication.ui.theme.MobileApplicationTheme
 
@@ -56,6 +57,7 @@ class MainActivitySelector : ComponentActivity() {
 fun MainScreen() {
     var selectedScreen by remember { mutableStateOf("home") }
 
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -70,7 +72,7 @@ fun MainScreen() {
                 "home" -> HomeScreen()
                 "inventory" -> InventoryScreen()
                 "invoice" -> InvoiceScreen()
-                "balance" -> BalanceScreen()
+                "balance" -> ReportScreen()
             }
         }
 
@@ -96,8 +98,9 @@ fun InvoiceScreen() {
 }
 
 @Composable
-fun BalanceScreen() {
+fun ReportScreen() {
     ReportScreen(ReportViewModel)
+   // ReportDetailScreen()
 }
 
 @Composable
