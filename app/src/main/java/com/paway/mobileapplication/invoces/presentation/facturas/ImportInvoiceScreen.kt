@@ -276,7 +276,7 @@ fun ProductSelectionItem(
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = product.name,
+                text = product.productName,
                 style = MaterialTheme.typography.bodyLarge
             )
             Text(

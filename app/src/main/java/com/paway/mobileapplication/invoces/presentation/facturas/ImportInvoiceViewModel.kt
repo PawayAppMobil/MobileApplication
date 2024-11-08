@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.paway.mobileapplication.inventory.common.Resource
 import com.paway.mobileapplication.inventory.domain.Product
-import com.paway.mobileapplication.invoces.data.remote.dto.invoice.toInvoiceDTO
+
 import com.paway.mobileapplication.invoces.data.repository.WebServiceRepository
 import com.paway.mobileapplication.invoces.domain.model.invoice.Invoice
 import com.paway.mobileapplication.invoces.domain.model.transaction.Transaction

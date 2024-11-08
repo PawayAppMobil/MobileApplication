@@ -14,15 +14,3 @@ data class InvoiceDTO(
     val amount: Double = 0.0
 )
 
-fun Invoice.toInvoiceDTO(): InvoiceDTO {
-    return InvoiceDTO(
-        id = this.id,
-        userId = this.userId,
-        date = this.date,
-        dueDate = this.dueDate,
-        status = this.status,
-        items = this.items.map { it.toProductDTO() },
-        document = this.document,
-        amount = this.amount
-    )
-}
