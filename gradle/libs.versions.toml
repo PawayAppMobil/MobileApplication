@@ -12,8 +12,8 @@ retrofit = "2.11.0"
 room = "2.6.1"
 ksp = "1.9.0-1.0.13"
 glide = "2.3.8"
-cardview = "1.0.0"
-
+navigationCompose = "2.8.1"
+playServicesAnalyticsImpl = "18.2.0"
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -35,7 +35,8 @@ room-runtime = {group = "androidx.room", name =  "room-runtime", version.ref = "
 room-compiler = {group = "androidx.room", name =  "room-compiler", version.ref = "room"}
 room-ktx = {group = "androidx.room", name =  "room-ktx", version.ref = "room"}
 glide = {group = "com.github.skydoves", name = "landscapist-glide", version.ref = "glide"}
-androidx-cardview = { group = "androidx.cardview", name = "cardview", version.ref = "cardview" }
+androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
+play-services-analytics-impl = { group = "com.google.android.gms", name = "play-services-analytics-impl", version.ref = "playServicesAnalyticsImpl" }
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
