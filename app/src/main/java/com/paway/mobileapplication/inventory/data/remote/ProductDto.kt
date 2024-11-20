@@ -16,5 +16,5 @@ data class ProductDto(
 
 fun ProductDto.toProduct(): Product {
     val userId = this.userId ?: "0"
-    return Product(id, providerId, description, price, productName, stock, image,providerId)
+    return Product(id, userId, description, price, productName, stock, image,providerId)
 }

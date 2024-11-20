@@ -56,19 +56,7 @@ class ProductListViewModel(
         }
     }
 
-    fun toggleFavorite(product: Product) {
-        product.isFavorite = !product.isFavorite
-        viewModelScope.launch {
-            if (product.isFavorite) {
-                repository.insertProduct(product)
-            } else {
-                repository.deleteProduct(product)
-            }
-            val products = _state.value.data
-            _state.value = UIState(data = emptyList())
-            _state.value = UIState(data = products)
-        }
-    }
+
 
     fun filterProductsByName() {
         _state.value = UIState(isLoading = true)
@@ -96,18 +84,7 @@ class ProductListViewModel(
         }
     }
 
-    fun filterProductsByFavorites() {
-        _state.value = UIState(isLoading = true)
-        viewModelScope.launch {
-            val result = repository.getAllProductsByUserId(userId)
-            if (result is Resource.Success) {
-                val favoriteProducts = result.data?.filter { it.isFavorite }
-                _state.value = UIState(data = favoriteProducts)
-            } else {
-                _state.value = UIState(error = result.message ?: "An error occurred")
-            }
-        }
-    }
+
 
     fun deleteProduct(product: Product) {
         viewModelScope.launch {

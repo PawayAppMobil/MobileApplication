@@ -13,6 +13,7 @@ data class ProductEntity(
     @ColumnInfo("userId")
     val userId: String,
     @ColumnInfo("stock")
-    val stock: Int
-
+    val stock: Int,
+    @ColumnInfo("initialStock")
+    val initialStock: Int
 )

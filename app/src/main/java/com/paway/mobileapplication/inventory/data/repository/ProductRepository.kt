@@ -16,23 +16,20 @@ class ProductRepository(
     private val productDao: ProductDao,
 ) {
 
-    private suspend fun isFavorite(id: String): Boolean = withContext(Dispatchers.IO) {
-        productDao.fetchProductById(id)?.let {
-            return@withContext true
-        }
-        return@withContext false
-    }
 
+
+    private suspend fun getInitialStock(id: String): Int = withContext(Dispatchers.IO) {
+        productDao.fetchProductById(id)?.initialStock ?: 0
+    }
 
     suspend fun getAllProductsByUserId(userId: String): Resource<List<Product>> = withContext(Dispatchers.IO) {
         val response = productService.getProductsByUserId(userId)
         if (response.isSuccessful) {
             response.body()?.let { productsDto ->
-                val products = mutableListOf<Product>()
-                productsDto.forEach { productDto: ProductDto ->
+                val products = productsDto.map { productDto ->
                     val product = productDto.toProduct()
-                    product.isFavorite = isFavorite(product.id)
-                    products.add(product)
+                    val initialStock = getInitialStock(product.id)
+                    product.copy(initialStock = initialStock)
                 }
                 return@withContext Resource.Success(data = products)
             }
@@ -55,11 +52,11 @@ class ProductRepository(
     }
 
     suspend fun insertProduct(product: Product) = withContext(Dispatchers.IO) {
-        productDao.insert(ProductEntity(product.id, product.productName,product.userId, product.stock))
+        productDao.insert(ProductEntity(product.id, product.productName,product.userId,product.stock, product.stock))
     }
 
     suspend fun deleteProduct(product: Product) = withContext(Dispatchers.IO) {
-        productDao.delete(ProductEntity(product.id, product.productName,product.userId, product.stock))
+        productDao.delete(ProductEntity(product.id, product.productName,product.userId,product.stock,product.stock))
     }
 
     suspend fun getProductById(id: String): Resource<Product> = withContext(Dispatchers.IO) {

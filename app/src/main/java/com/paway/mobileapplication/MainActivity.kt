@@ -111,7 +111,7 @@ fun InventoryScreen(userId: String?) {
     val context = LocalContext.current
     val database = Room.databaseBuilder(
         context,
-        AppDataBase::class.java, "product-database2"
+        AppDataBase::class.java, "product-database3"
     ).build()
 
     val retrofit = Retrofit.Builder()
