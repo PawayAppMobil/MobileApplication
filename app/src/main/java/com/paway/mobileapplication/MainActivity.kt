@@ -38,6 +38,8 @@ import com.paway.mobileapplication.inventory.data.local.AppDataBase
 import com.paway.mobileapplication.inventory.data.remote.ProductService
 import com.paway.mobileapplication.inventory.data.repository.ProductRepository
 import com.paway.mobileapplication.inventory.domain.GetProductByIdUseCase
+import com.paway.mobileapplication.inventory.presentation.ProductAddScreen
+import com.paway.mobileapplication.inventory.presentation.ProductAddViewModel
 import com.paway.mobileapplication.inventory.presentation.ProductDetailScreen
 import com.paway.mobileapplication.inventory.presentation.ProductDetailViewModel
 import com.paway.mobileapplication.inventory.presentation.ProductListScreen
@@ -109,7 +111,7 @@ fun InventoryScreen(userId: String?) {
     val context = LocalContext.current
     val database = Room.databaseBuilder(
         context,
-        AppDataBase::class.java, "product-database"
+        AppDataBase::class.java, "product-database2"
     ).build()
 
     val retrofit = Retrofit.Builder()
@@ -122,10 +124,11 @@ fun InventoryScreen(userId: String?) {
     val productRepository = ProductRepository(productService, productDao)
     val getProductByIdUseCase = GetProductByIdUseCase(productRepository)
 
-    val productListViewModel = ProductListViewModel(productRepository,userId ?: "")
+    val productListViewModel = ProductListViewModel(productRepository, userId ?: "")
     val productDetailViewModel = ProductDetailViewModel(getProductByIdUseCase)
+    val productAddViewModel = ProductAddViewModel(productRepository, userId ?: "")
 
-    AppContent(productListViewModel, productDetailViewModel)
+    AppContent(productListViewModel, productDetailViewModel, productAddViewModel)
 }
 
 
@@ -195,11 +198,11 @@ fun BottomNavItem(icon: ImageVector, label: String, isSelected: Boolean, onClick
             color = if (isSelected) Color.Yellow else Color.Gray
         )
     }
-}
-@Composable
+}@Composable
 fun AppContent(
     productListViewModel: ProductListViewModel,
-    productDetailViewModel: ProductDetailViewModel
+    productDetailViewModel: ProductDetailViewModel,
+    productAddViewModel: ProductAddViewModel
 ) {
     val (currentScreen, setCurrentScreen) = remember { mutableStateOf<Screen>(Screen.ProductList) }
 
@@ -210,6 +213,9 @@ fun AppContent(
                 onProductClick = { productId ->
                     productDetailViewModel.getProductById(productId)
                     setCurrentScreen(Screen.ProductDetail(productId))
+                },
+                onAddProductClick = {
+                    setCurrentScreen(Screen.ProductAdd)
                 }
             )
         }
@@ -222,12 +228,26 @@ fun AppContent(
                 }
             )
         }
+        is Screen.ProductAdd -> {
+            ProductAddScreen(
+                viewModel = productAddViewModel,
+                onProductAdded = {
+                    setCurrentScreen(Screen.ProductList)
+                },
+                onBackClick = {
+                    setCurrentScreen(Screen.ProductList)
+                }
+            )
+        }
     }
 }
 sealed class Screen {
     object ProductList : Screen()
     data class ProductDetail(val productId: String) : Screen()
+    object ProductAdd : Screen()
 }
+
+
 @Preview(showBackground = true)
 @Composable
 fun MainScreenPreview() {

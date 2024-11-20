@@ -8,5 +8,6 @@ data class Product(
     val productName: String,
     val stock: Int,
     val image: String,
+    val providerId: String,
     var isFavorite: Boolean = false
 )

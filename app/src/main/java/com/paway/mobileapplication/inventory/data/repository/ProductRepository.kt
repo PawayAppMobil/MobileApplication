@@ -90,9 +90,13 @@ class ProductRepository(
                 price = product.price,
                 productName = product.productName,
                 stock = product.stock,
-                image = product.productName // Add image handling if necessary
+                image = product.image,
+                providerId = product.userId
             )
+
             val response = productService.createProduct(productDto)
+
+
             if (response.isSuccessful) {
                 response.body()?.let {
                     return@withContext Resource.Success(data = it.toProduct())
@@ -103,5 +107,7 @@ class ProductRepository(
             return@withContext Resource.Error(message = e.message ?: "An unknown error occurred")
         }
     }
+
+
 
 }

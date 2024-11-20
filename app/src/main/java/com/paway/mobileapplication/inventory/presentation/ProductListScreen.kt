@@ -22,7 +22,7 @@ import com.paway.mobileapplication.inventory.domain.Product
 fun ProductListScreen(
     viewModel: ProductListViewModel,
     onProductClick: (String) -> Unit,
-
+    onAddProductClick: ()->Unit,
 ) {
     val state = viewModel.state.value
     val name = viewModel.name.value
@@ -35,7 +35,7 @@ fun ProductListScreen(
 
     Scaffold(
             floatingActionButton = {
-                FloatingActionButton(onClick ={} ) {
+                FloatingActionButton(onClick =onAddProductClick  ) {
                     Icon(Icons.Default.Add, contentDescription = "Add Product")
                 }
             }
@@ -112,7 +112,7 @@ fun ProductListScreen(
                     CircularProgressIndicator()
                 }
                 if (state.error.isNotEmpty()) {
-                    Text(state.error)
+                    Text("There isn't products")
                 }
             }
         }
