@@ -29,7 +29,8 @@ class ProductAddViewModel(private val repository: ProductRepository, private val
                     productName = name,
                     stock = stock,
                     image =image,
-                    providerId = providerId
+                    providerId = providerId,
+                    initialStock = stock
                 )
 
 

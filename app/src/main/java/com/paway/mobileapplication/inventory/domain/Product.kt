@@ -9,5 +9,5 @@ data class Product(
     val stock: Int,
     val image: String,
     val providerId: String,
-    var initialStock: Int=0,
+    var initialStock: Int=stock,
 )

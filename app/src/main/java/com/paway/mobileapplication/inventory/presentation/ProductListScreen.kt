@@ -1,6 +1,7 @@
 package com.paway.mobileapplication.inventory.presentation
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -25,6 +26,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.dp
 import com.paway.mobileapplication.inventory.domain.Product
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.util.Base64
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+
 
 
 @Composable
@@ -123,9 +130,12 @@ fun ProductListScreen(
             }
         }
     }
-}@Composable
+}
+@Composable
 fun ProductItem(product: Product, backgroundColor: Color, onDeletePressed: () -> Unit) {
     val iconColor = if (product.stock < product.initialStock) Color.Yellow else Color.Green
+    val imageBitmap = base64ToImageBitmap(product.image)
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = backgroundColor),
@@ -142,6 +152,13 @@ fun ProductItem(product: Product, backgroundColor: Color, onDeletePressed: () ->
             ) {
                 Text(product.productName)
                 Text(product.stock.toString())
+                imageBitmap?.let {
+                    Image(
+                        bitmap = it,
+                        contentDescription = "Product image",
+                        modifier = Modifier.size(50.dp)
+                    )
+                }
             }
             Icon(
                 Icons.Filled.Info,
@@ -149,5 +166,16 @@ fun ProductItem(product: Product, backgroundColor: Color, onDeletePressed: () ->
                 tint = iconColor
             )
         }
+    }
+}
+
+
+fun base64ToImageBitmap(base64: String): ImageBitmap? {
+    return try {
+        val decodedString = Base64.decode(base64, Base64.DEFAULT)
+        val bitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.size)
+        bitmap.asImageBitmap()
+    } catch (e: IllegalArgumentException) {
+        null
     }
 }

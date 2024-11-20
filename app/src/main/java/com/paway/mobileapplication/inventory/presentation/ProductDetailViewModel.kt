@@ -11,7 +11,6 @@ import com.paway.mobileapplication.inventory.data.repository.ProductRepository
 import com.paway.mobileapplication.inventory.domain.GetProductByIdUseCase
 import com.paway.mobileapplication.inventory.domain.Product
 import kotlinx.coroutines.launch
-
 class ProductDetailViewModel(
     private val repository: ProductRepository,
     private val getProductByIdUseCase: GetProductByIdUseCase
@@ -41,8 +40,7 @@ class ProductDetailViewModel(
         }
     }
 
-
-    fun updateProduct(id: String, name: String, description: String, price: Double, stock: Int) {
+    fun updateProduct(id: String, name: String, description: String, price: Double, stock: Int, image: String) {
         viewModelScope.launch {
             val result = getProductByIdUseCase(id)
             if (result is Resource.Success) {
@@ -50,7 +48,8 @@ class ProductDetailViewModel(
                     productName = name,
                     description = description,
                     price = price,
-                    stock = stock
+                    stock = stock,
+                    image = image
                 )
                 product?.let {
                     repository.updateProduct(it)

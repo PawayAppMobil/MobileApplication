@@ -198,7 +198,9 @@ fun BottomNavItem(icon: ImageVector, label: String, isSelected: Boolean, onClick
             color = if (isSelected) Color.Yellow else Color.Gray
         )
     }
-}@Composable
+}
+
+@Composable
 fun AppContent(
     productListViewModel: ProductListViewModel,
     productDetailViewModel: ProductDetailViewModel,
@@ -224,6 +226,7 @@ fun AppContent(
                 viewModel = productDetailViewModel,
                 productId = (currentScreen as Screen.ProductDetail).productId,
                 onBackClick = {
+                    productListViewModel.refreshProducts() // Refresh the product list
                     setCurrentScreen(Screen.ProductList)
                 }
             )
@@ -232,9 +235,11 @@ fun AppContent(
             ProductAddScreen(
                 viewModel = productAddViewModel,
                 onProductAdded = {
+                    productListViewModel.refreshProducts() // Refresh the product list
                     setCurrentScreen(Screen.ProductList)
                 },
                 onBackClick = {
+                    productListViewModel.refreshProducts() // Refresh the product list
                     setCurrentScreen(Screen.ProductList)
                 }
             )
