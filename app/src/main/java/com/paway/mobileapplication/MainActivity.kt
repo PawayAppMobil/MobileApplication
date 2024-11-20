@@ -125,7 +125,7 @@ fun InventoryScreen(userId: String?) {
     val getProductByIdUseCase = GetProductByIdUseCase(productRepository)
 
     val productListViewModel = ProductListViewModel(productRepository, userId ?: "")
-    val productDetailViewModel = ProductDetailViewModel(getProductByIdUseCase)
+    val productDetailViewModel = ProductDetailViewModel(productRepository,getProductByIdUseCase)
     val productAddViewModel = ProductAddViewModel(productRepository, userId ?: "")
 
     AppContent(productListViewModel, productDetailViewModel, productAddViewModel)

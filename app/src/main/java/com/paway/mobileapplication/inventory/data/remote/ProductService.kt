@@ -6,6 +6,10 @@ import retrofit2.http.*
 interface ProductService {
 
 
+
+    @PUT("products/{id}")
+    suspend fun updateProduct(@Path("id") id: String, @Body productDto: ProductDto): Response<ProductDto>
+
     @POST("products")
     suspend fun createProduct(@Body productDto: ProductDto): Response<ProductDto>
 

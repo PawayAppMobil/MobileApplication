@@ -1,5 +1,6 @@
 package com.paway.mobileapplication.inventory.presentation
 
+
 import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -9,6 +10,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductDetailScreen(
@@ -17,6 +20,10 @@ fun ProductDetailScreen(
     onBackClick: () -> Unit
 ) {
     val state = viewModel.state.value
+    var description by remember { mutableStateOf("") }
+    var price by remember { mutableStateOf("") }
+    var productName by remember { mutableStateOf("") }
+    var stock by remember { mutableStateOf("") }
 
     LaunchedEffect(productId) {
         viewModel.getProductById(productId)
@@ -50,9 +57,49 @@ fun ProductDetailScreen(
                 }
                 state.data != null -> {
                     val product = state.data
-                    Text("ID del Producto: ${product?.id}")
-                    Text("Nombre del Producto: ${product?.productName}")
-                    Text("Stock: ${product?.stock}")
+                    product?.let {
+                        productName = it.productName
+                        description = it.description
+                        price = it.price.toString()
+                        stock = it.stock.toString()
+                    }
+                    OutlinedTextField(
+                        value = productName,
+                        onValueChange = { productName = it },
+                        label = { Text("Product Name") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = description,
+                        onValueChange = { description = it },
+                        label = { Text("Description") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = price,
+                        onValueChange = { price = it },
+                        label = { Text("Price") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = stock,
+                        onValueChange = { stock = it },
+                        label = { Text("Stock") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Button(
+                        onClick = {
+                            viewModel.updateProduct(
+                                productId,
+                                productName,
+                                description,
+                                price.toDouble(),
+                                stock.toInt()
+                            )
+                        }
+                    ) {
+                        Text("Update Product")
+                    }
                 }
                 else -> {
                     Text("No hay datos del producto disponibles")

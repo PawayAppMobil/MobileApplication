@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -22,7 +23,7 @@ import com.paway.mobileapplication.inventory.domain.Product
 fun ProductListScreen(
     viewModel: ProductListViewModel,
     onProductClick: (String) -> Unit,
-    onAddProductClick: ()->Unit,
+    onAddProductClick: () -> Unit,
 ) {
     val state = viewModel.state.value
     val name = viewModel.name.value
@@ -32,39 +33,30 @@ fun ProductListScreen(
         containerColor = Color(0xff005555)
     )
 
-
     Scaffold(
-            floatingActionButton = {
-                FloatingActionButton(onClick =onAddProductClick  ) {
-                    Icon(Icons.Default.Add, contentDescription = "Add Product")
-                }
+        floatingActionButton = {
+            FloatingActionButton(onClick = onAddProductClick) {
+                Icon(Icons.Default.Add, contentDescription = "Add Product")
             }
-
+        }
     ) { paddingValues ->
         Column(
-            modifier = Modifier.padding(paddingValues)
+            modifier = Modifier
+                .padding(paddingValues)
                 .background(Color(0xffd9d9d9)),
             horizontalAlignment = Alignment.CenterHorizontally,
-
-
-            ) {
+        ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                OutlinedButton(onClick = { viewModel.filterProductsByName() },
-                    colors = buttonColors) {
+                OutlinedButton(onClick = { viewModel.filterProductsByName() }, colors = buttonColors) {
                     Text("Filter by Name")
                 }
-                OutlinedButton(onClick = { viewModel.filterProductsByStock() },
-                    colors = buttonColors
-                ) {
+                OutlinedButton(onClick = { viewModel.filterProductsByStock() }, colors = buttonColors) {
                     Text("Filter by Stock")
                 }
-                OutlinedButton(onClick = { viewModel.filterProductsByFavorites() },
-                    colors = buttonColors
-
-                ) {
+                OutlinedButton(onClick = { viewModel.filterProductsByFavorites() }, colors = buttonColors) {
                     Text("Filter by Favorites")
                 }
             }
@@ -79,10 +71,7 @@ fun ProductListScreen(
                 })
             OutlinedButton(onClick = {
                 viewModel.searchProduct()
-            },colors = buttonColors
-
-
-            ) { Text("Search") }
+            }, colors = buttonColors) { Text("Search") }
             state.data?.let { products: List<Product> ->
                 LazyColumn {
                     itemsIndexed(products) { index, product ->
@@ -93,16 +82,15 @@ fun ProductListScreen(
                                 .padding(4.dp)
                                 .clickable { onProductClick(product.id) }
                         ) {
-                            ProductItem(product, backgroundColor) {
+                            ProductItem(product, backgroundColor, {
                                 viewModel.toggleFavorite(product)
+                            }) {
+                                viewModel.deleteProduct(product)
                             }
                         }
-
                     }
-
                 }
             }
-
             Column(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -118,37 +106,31 @@ fun ProductListScreen(
         }
     }
 }
-
 @Composable
-fun ProductItem(product: Product,backgroundColor:Color ,onFavoritePressed: () -> Unit) {
+fun ProductItem(product: Product, backgroundColor: Color, onFavoritePressed: () -> Unit, onDeletePressed: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth(),
-
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor
         ),
         shape = RectangleShape
-
-
     ) {
-
         Row(
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            IconButton(onClick = onDeletePressed) {
+                Icon(Icons.Default.Clear, contentDescription = "Delete", tint = Color.Red)
+            }
             Column(
                 modifier = Modifier
                     .padding(8.dp)
                     .weight(3f)
-
             ) {
                 Text(product.productName)
                 Text(product.stock.toString())
             }
-
-            IconButton(onClick = {
-                onFavoritePressed()
-            }) {
+            IconButton(onClick = onFavoritePressed) {
                 Icon(
                     Icons.Filled.Star,
                     "Favorite",
@@ -156,8 +138,5 @@ fun ProductItem(product: Product,backgroundColor:Color ,onFavoritePressed: () ->
                 )
             }
         }
-
     }
-
 }
-

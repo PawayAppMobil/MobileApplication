@@ -108,4 +108,12 @@ class ProductListViewModel(
             }
         }
     }
+
+    fun deleteProduct(product: Product) {
+        viewModelScope.launch {
+            repository.deleteProduct(product)
+            refreshProducts()
+        }
+    }
+
 }

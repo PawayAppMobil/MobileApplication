@@ -109,5 +109,29 @@ class ProductRepository(
     }
 
 
+    suspend fun updateProduct(product: Product): Resource<Product> = withContext(Dispatchers.IO) {
+        try {
+            val productDto = ProductDto(
+                id = product.id,
+                userId = product.userId,
+                description = product.description,
+                price = product.price,
+                productName = product.productName,
+                stock = product.stock,
+                image = product.image,
+                providerId = product.providerId
+            )
+            val response = productService.updateProduct(product.id, productDto)
+            if (response.isSuccessful) {
+                response.body()?.let {
+                    return@withContext Resource.Success(data = it.toProduct())
+                }
+            }
+            return@withContext Resource.Error(message = response.message())
+        } catch (e: Exception) {
+            return@withContext Resource.Error(message = e.message ?: "An unknown error occurred")
+        }
+    }
+
 
 }

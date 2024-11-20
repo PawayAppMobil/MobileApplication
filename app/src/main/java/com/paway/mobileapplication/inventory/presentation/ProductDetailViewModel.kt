@@ -7,11 +7,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.paway.mobileapplication.inventory.common.Resource
 import com.paway.mobileapplication.inventory.common.UIState
+import com.paway.mobileapplication.inventory.data.repository.ProductRepository
 import com.paway.mobileapplication.inventory.domain.GetProductByIdUseCase
 import com.paway.mobileapplication.inventory.domain.Product
 import kotlinx.coroutines.launch
 
 class ProductDetailViewModel(
+    private val repository: ProductRepository,
     private val getProductByIdUseCase: GetProductByIdUseCase
 ) : ViewModel() {
 
@@ -34,6 +36,25 @@ class ProductDetailViewModel(
                 else -> {
                     Log.e("ProductDetailViewModel", "Unexpected result: $result")
                     _state.value = UIState(error = "Unexpected error")
+                }
+            }
+        }
+    }
+
+
+    fun updateProduct(id: String, name: String, description: String, price: Double, stock: Int) {
+        viewModelScope.launch {
+            val result = getProductByIdUseCase(id)
+            if (result is Resource.Success) {
+                val product = result.data?.copy(
+                    productName = name,
+                    description = description,
+                    price = price,
+                    stock = stock
+                )
+                product?.let {
+                    repository.updateProduct(it)
+                    getProductById(id) // Refresh the product details
                 }
             }
         }
