@@ -16,16 +16,16 @@ interface ProductService {
     suspend fun updateProduct(@Path("id") id: String, @Body productDto: ProductDto): Response<ProductDto>
 
     @Multipart
-    @POST("/products")
+    @POST("products")
     suspend fun createProduct(
         @Part("description") description: RequestBody,
         @Part("userId") userId: RequestBody,
         @Part("price") price: RequestBody,
         @Part("productName") productName: RequestBody,
         @Part("stock") stock: RequestBody,
-        @Part image: MultipartBody.Part,
-        @Part("providerId") providerId: RequestBody
-    ): Response<ProductDto>
+        @Part("providerId") providerId: RequestBody,
+        @Part image: MultipartBody.Part
+    ): Response<ProductCreate>
 
     @GET("products")
     suspend fun searchProduct(@Query("productName") name: String): Response<List<ProductDto>>

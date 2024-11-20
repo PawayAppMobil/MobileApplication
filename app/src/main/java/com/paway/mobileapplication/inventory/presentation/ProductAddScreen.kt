@@ -1,7 +1,11 @@
 package com.paway.mobileapplication.inventory.presentation
 
+import android.os.Environment
+import android.content.ContentResolver
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.Uri
 import android.util.Base64
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -9,15 +13,21 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.io.InputStream
+
 @Composable
 fun ProductAddScreen(
     viewModel: ProductAddViewModel,
+
     onProductAdded: () -> Unit,
     onBackClick: () -> Unit
 ) {
@@ -26,21 +36,19 @@ fun ProductAddScreen(
     var productName by remember { mutableStateOf("") }
     var stock by remember { mutableStateOf("") }
     var providerId by remember { mutableStateOf("") }
-    var imageBase64 by remember { mutableStateOf("") }
-    var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var imageFile by remember { mutableStateOf<File?>(null) }
 
     val context = LocalContext.current
 
-    val isFormValid = productName.isNotBlank() && description.isNotBlank() && price.isNotBlank() && stock.isNotBlank() && imageBase64.isNotBlank()
+    val isFormValid = productName.isNotBlank() && description.isNotBlank() && price.isNotBlank() && stock.isNotBlank() && imageFile != null
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
         uri?.let {
-            val inputStream = context.contentResolver.openInputStream(uri)
-            val bitmap = BitmapFactory.decodeStream(inputStream)
-            imageBitmap = bitmap
-            imageBase64 = bitmapToBase64(bitmap)
+            // Convertir URI en archivo
+            val file = uriToFile(it, context)
+            imageFile = file
         }
     }
 
@@ -86,14 +94,9 @@ fun ProductAddScreen(
         ) {
             Text("Select Image")
         }
-        imageBitmap?.let { bitmap ->
-            Image(
-                bitmap = bitmap.asImageBitmap(),
-                contentDescription = null,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-            )
+
+        imageFile?.let { file ->
+            Text("Selected file: ${file.name}", modifier = Modifier.padding(top = 8.dp))
         }
 
         Row(
@@ -107,7 +110,21 @@ fun ProductAddScreen(
             }
             Button(
                 onClick = {
-                    viewModel.addProduct(productName, description, price.toDouble(), stock.toInt(), providerId, imageBase64, onProductAdded)
+                    // Asegúrate de que los valores estén bien convertidos antes de pasarlos al ViewModel
+                    val priceDouble = price.toDoubleOrNull() ?: 0.0  // Si no es un número válido, usa 0.0
+                    val stockInt = stock.toIntOrNull() ?: 0 // Si no es un número válido, usa 0
+
+                    // Verificar si el archivo está seleccionado y proceder a enviar el producto
+                    imageFile?.let {
+                        viewModel.addProduct(
+                            productName = productName,
+                            description = description,
+                            price = priceDouble,
+                            stock = stockInt,
+                            providerId = providerId,
+                            imageFile = it  // Enviar el archivo
+                        )
+                    }
                 },
                 enabled = isFormValid
             ) {
@@ -116,6 +133,23 @@ fun ProductAddScreen(
         }
     }
 }
+
+fun uriToFile(uri: Uri, context: Context): File {
+    // Crear un archivo temporal para almacenar la imagen
+    val contentResolver: ContentResolver = context.contentResolver
+    val tempFile = File(context.cacheDir, "product_image.png")
+    try {
+        val inputStream: InputStream? = contentResolver.openInputStream(uri)
+        val outputStream = FileOutputStream(tempFile)
+        inputStream?.copyTo(outputStream)
+        outputStream.close()
+        inputStream?.close()
+    } catch (e: IOException) {
+        e.printStackTrace()
+    }
+    return tempFile
+}
+
 
 fun bitmapToBase64(bitmap: Bitmap): String {
     val byteArrayOutputStream = ByteArrayOutputStream()
