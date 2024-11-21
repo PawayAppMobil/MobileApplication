@@ -165,7 +165,7 @@ fun ImportInvoiceScreen(viewModel: ImportInvoiceViewModel, userId: String?) {
                 },
                 modifier = Modifier.weight(1f)
             ) {
-                Text("Show JSON")
+                Text("Show Preview")
             }
         }
 
