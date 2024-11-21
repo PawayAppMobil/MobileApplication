@@ -7,6 +7,8 @@ import com.paway.mobileapplication.inventory.data.local.ProductEntity
 import com.paway.mobileapplication.inventory.data.remote.ProductCreate
 import com.paway.mobileapplication.inventory.data.remote.ProductDto
 import com.paway.mobileapplication.inventory.data.remote.ProductService
+import com.paway.mobileapplication.inventory.data.remote.ProductUpdateRequest
+import com.paway.mobileapplication.inventory.data.remote.ProductUpdateResponse
 import com.paway.mobileapplication.inventory.data.remote.toProduct
 import com.paway.mobileapplication.inventory.domain.Product
 import kotlinx.coroutines.Dispatchers
@@ -22,7 +24,10 @@ class ProductRepository(
     private val productDao: ProductDao,
 ) {
 
-
+    private fun createImagePart(file: File, partName: String = "image"): MultipartBody.Part {
+        val requestFile = RequestBody.create(MediaType.parse("image/*"), file)
+        return MultipartBody.Part.createFormData(partName, file.name, requestFile)
+    }
 
     private suspend fun getInitialStock(id: String): Int = withContext(Dispatchers.IO) {
         productDao.fetchProductById(id)?.initialStock ?: 0
@@ -120,39 +125,26 @@ class ProductRepository(
         }
     }
 
-    suspend fun updateProduct(product: Product): Resource<Product> = withContext(Dispatchers.IO) {
-        try {
-            val productDto = ProductDto(
-                id = product.id,
-                userId = product.userId,
-                description = product.description,
-                price = product.price,
-                productName = product.productName,
-                stock = product.stock,
-                image = product.image,
-                providerId = product.providerId
-            )
-            val response = productService.updateProduct(product.id, productDto)
-            if (response.isSuccessful) {
-                response.body()?.let {
-                    val existingProduct = productDao.fetchProductById(product.id)
-                    if (existingProduct != null) {
-                        productDao.updateStock(product.id, product.stock)
-                    }
-
-                    val imageResponse = productService.updateProductImage(product.id, product.image)
-                    if (imageResponse.isSuccessful) {
-                        return@withContext Resource.Success(data = it.toProduct().copy(initialStock = existingProduct?.initialStock ?: product.initialStock))
-                    } else {
-                        return@withContext Resource.Error(message = imageResponse.message())
-                    }
-                }
-            }
-            return@withContext Resource.Error(message = response.message())
-        } catch (e: Exception) {
-            return@withContext Resource.Error(message = e.message ?: "An unknown error occurred")
+    // Actualizar solo la imagen del producto en la API
+    suspend fun updateProductImage(id: String, imageFile: File): Response<ProductUpdateResponse> {
+        return withContext(Dispatchers.IO) {
+            val imagePart = createImagePart(imageFile)
+            productService.updateProductImage(id, imagePart)
         }
     }
+
+    // Actualizar los datos del producto en la API
+    suspend fun updateProduct(
+        id: String,
+        productUpdateRequest: ProductUpdateRequest
+    ): Response<ProductUpdateResponse> {
+        return withContext(Dispatchers.IO) {
+            productService.updateProduct(id, productUpdateRequest)
+        }
+
+    }
+
+
 
 
     suspend fun deleteProductFull(product: Product): Resource<Unit> = withContext(Dispatchers.IO) {

@@ -1,165 +1,199 @@
 package com.paway.mobileapplication.inventory.presentation
 
 
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
+
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.foundation.Image
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.unit.dp
-import java.io.ByteArrayOutputStream
-import android.util.Base64
+
 import androidx.compose.ui.unit.dp
 
-@OptIn(ExperimentalMaterial3Api::class)
+import java.io.File
+
 @Composable
 fun ProductDetailScreen(
-    viewModel: ProductDetailViewModel,
     productId: String,
+    viewModel: ProductDetailViewModel,
     onBackClick: () -> Unit
 ) {
-    val state = viewModel.state.value
     var description by remember { mutableStateOf("") }
     var price by remember { mutableStateOf("") }
     var productName by remember { mutableStateOf("") }
     var stock by remember { mutableStateOf("") }
-    var imageBase64 by remember { mutableStateOf("") }
-    var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var providerId by remember { mutableStateOf("") }
+    var imageFile by remember { mutableStateOf<File?>(null) }
+    var loading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
+    var successMessage by remember { mutableStateOf("") }
 
+    // Cargar el producto por ID
+    LaunchedEffect(productId) {
+        viewModel.getProductById(productId)
+    }
     val context = LocalContext.current
+    // Obtener el estado del producto desde el ViewModel
+    val productState by viewModel.state
 
+    // Configurar lanzador para seleccionar imagen
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
         uri?.let {
-            val inputStream = context.contentResolver.openInputStream(uri)
-            val bitmap = BitmapFactory.decodeStream(inputStream)
-            imageBitmap = bitmap
-            imageBase64 = bitmapToBase64(bitmap)
+            val file = uriToFile(it, context)
+            imageFile = file
         }
     }
 
-    LaunchedEffect(productId) {
-        viewModel.getProductById(productId)
-    }
-
-    LaunchedEffect(state.data) {
-        state.data?.let { product ->
-            productName = product.productName
-            description = product.description
-            price = product.price.toString()
-            stock = product.stock.toString()
-            imageBase64 = product.image
-            imageBitmap = base64ToBitmap(product.image)
+    // Verificar el estado de la UI
+    when {
+        productState.isLoading -> {
+            CircularProgressIndicator(modifier = Modifier.fillMaxSize())
         }
-    }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Detalles del Producto") },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Atrás")
-                    }
-                }
-            )
+        productState.error.isNotEmpty() -> {
+            errorMessage = productState.error
         }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            when {
-                state.isLoading -> {
-                    CircularProgressIndicator()
+        productState.data != null -> {
+            val product = productState.data!!
+
+            // Rellenar los campos con los valores actuales del producto
+            // Estos valores son asignados a las variables, pero como son estados mutables,
+            // el usuario puede modificarlos a través de los campos de entrada
+            if (productName.isEmpty() && description.isEmpty() && price.isEmpty() && stock.isEmpty() && providerId.isEmpty()) {
+                // Rellenar los campos con los valores actuales del producto solo si están vacíos
+                description = product.description
+                price = product.price.toString()
+                productName = product.productName
+                stock = product.stock.toString()
+                providerId = product.providerId
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.Center
+            ) {
+                // Campos de entrada para editar el producto
+                OutlinedTextField(
+                    value = productName,
+                    onValueChange = { productName = it },  // Permite modificar el valor
+                    label = { Text("Product Name") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = description,
+                    onValueChange = { description = it },  // Permite modificar el valor
+                    label = { Text("Description") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = price,
+                    onValueChange = { price = it },  // Permite modificar el valor
+                    label = { Text("Price") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = stock,
+                    onValueChange = { stock = it },  // Permite modificar el valor
+                    label = { Text("Stock") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = providerId,
+                    onValueChange = { providerId = it },  // Permite modificar el valor
+                    label = { Text("ProviderId") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                // Botón para seleccionar imagen
+                Button(
+                    onClick = { imagePickerLauncher.launch("image/*") },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Select Image")
                 }
-                state.error.isNotEmpty() -> {
-                    Text(state.error, color = Color.Red)
+
+                imageFile?.let { file ->
+                    Text("Selected file: ${file.name}", modifier = Modifier.padding(top = 8.dp))
                 }
-                state.data != null -> {
-                    OutlinedTextField(
-                        value = productName,
-                        onValueChange = { productName = it },
-                        label = { Text("Product Name") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    OutlinedTextField(
-                        value = description,
-                        onValueChange = { description = it },
-                        label = { Text("Description") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    OutlinedTextField(
-                        value = price,
-                        onValueChange = { price = it },
-                        label = { Text("Price") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    OutlinedTextField(
-                        value = stock,
-                        onValueChange = { stock = it },
-                        label = { Text("Stock") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Button(
-                        onClick = { imagePickerLauncher.launch("image/*") },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Select Image")
+
+                // Mensajes de estado
+                errorMessage.takeIf { it.isNotEmpty() }?.let {
+                    Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(8.dp))
+                }
+                successMessage.takeIf { it.isNotEmpty() }?.let {
+                    Text(it, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(8.dp))
+                }
+
+                // Botones de acción
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    // Botón de retroceso
+                    Button(onClick = onBackClick) {
+                        Text("Back")
                     }
-                    imageBitmap?.let { bitmap ->
-                        Image(
-                            bitmap = bitmap.asImageBitmap(),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(200.dp)
-                        )
-                    }
+
+                    // Botón para actualizar el producto
                     Button(
                         onClick = {
-                            viewModel.updateProduct(
-                                productId,
-                                productName,
-                                description,
-                                price.toDouble(),
-                                stock.toInt(),
-                                imageBase64
-                            )
-                        }
+                            val priceDouble = price.toDoubleOrNull() ?: 0.0
+                            val stockInt = stock.toIntOrNull() ?: 0
+
+                            // Actualizar producto con los datos modificados
+                            imageFile?.let {
+                                loading = true
+                                successMessage = ""
+                                errorMessage = ""
+                                viewModel.updateProduct(
+                                    id = productId,
+                                    description = description,
+                                    price = priceDouble,
+                                    productName = productName,
+                                    stock = stockInt,
+                                    providerId = providerId,
+                                    imageFile = it,
+                                    onSuccess = {
+                                        successMessage = "Product updated successfully"
+                                        loading = false
+                                    },
+                                    onError = {
+                                        errorMessage = "Error updating product"
+                                        loading = false
+                                    }
+                                )
+                            }
+                        },
+                        enabled = description.isNotBlank() && productName.isNotBlank() && price.isNotBlank() && stock.isNotBlank() && imageFile != null
                     ) {
                         Text("Update Product")
                     }
-                }
-                else -> {
-                    Text("No hay datos del producto disponibles")
+
+                    // Botón Limpiar para borrar los campos de texto
+                    Button(
+                        onClick = {
+                            // Resetear los campos a valores vacíos
+                            description = ""
+                            price = ""
+                            productName = ""
+                            stock = ""
+                            providerId = ""
+                            imageFile = null
+                        }
+                    ) {
+                        Text("Clear")
+                    }
                 }
             }
         }
     }
 }
 
-
-fun base64ToBitmap(base64: String): Bitmap? {
-    return try {
-        val decodedString = Base64.decode(base64, Base64.DEFAULT)
-        BitmapFactory.decodeByteArray(decodedString, 0, decodedString.size)
-    } catch (e: IllegalArgumentException) {
-        null
-    }
-}

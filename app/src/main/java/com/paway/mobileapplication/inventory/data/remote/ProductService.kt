@@ -8,12 +8,18 @@ import retrofit2.http.*
 interface ProductService {
 
 
+    @Multipart
     @PUT("products/{id}/image")
-    suspend fun updateProductImage(@Path("id") id: String, @Body image: String): Response<Unit>
-
+    suspend fun updateProductImage(
+        @Path("id") id: String,
+        @Part image: MultipartBody.Part
+    ): Response<ProductUpdateResponse>
 
     @PUT("products/{id}")
-    suspend fun updateProduct(@Path("id") id: String, @Body productDto: ProductDto): Response<ProductDto>
+    suspend fun updateProduct(
+        @Path("id") id: String,
+        @Body product: ProductUpdateRequest
+    ): Response<ProductUpdateResponse>
 
     @Multipart
     @POST("products")
