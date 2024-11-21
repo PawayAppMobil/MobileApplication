@@ -208,7 +208,7 @@ fun ImportInvoiceScreen(viewModel: ImportInvoiceViewModel, userId: String?) {
     if (showJsonDialog) {
         AlertDialog(
             onDismissRequest = { showJsonDialog = false },
-            title = { Text("JSON Preview") },
+            title = { Text("Preview") },
             text = { Text(jsonContent) },
             confirmButton = {
                 Button(onClick = { showJsonDialog = false }) {

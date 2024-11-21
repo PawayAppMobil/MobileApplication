@@ -79,7 +79,7 @@ class InvoiceDashboardViewModel(private val repository: WebServiceRepository) : 
         }
 
         _state.value = _state.value.copy(
-            totalPendingInvoices = "S/. ${pendingInvoices.sumOf { it.amount }}",
+            totalPendingInvoices = "${pendingInvoices.sumOf { it.amount }}",
             totalOverdueInvoices = "S/. ${overdueInvoices.sumOf { it.amount }}",
             totalInvoices = "S/. ${invoices.sumOf { it.amount }}",
             isLoading = false
