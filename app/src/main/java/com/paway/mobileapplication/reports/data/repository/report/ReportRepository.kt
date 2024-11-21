@@ -1,13 +1,10 @@
 package com.paway.mobileapplication.reports.data.repository.report
 
-import com.paway.mobileapplication.inventory.common.Resource
+import com.paway.mobileapplication.common.Resource
 import com.paway.mobileapplication.reports.data.remote.ReportService
 import com.paway.mobileapplication.reports.data.remote.dto.report.ReportRequestDto
-import com.paway.mobileapplication.reports.data.remote.dto.report.TransactionDto
 import com.paway.mobileapplication.reports.data.remote.dto.report.toReport
-import com.paway.mobileapplication.reports.data.remote.dto.report.toTransaction
 import com.paway.mobileapplication.reports.domain.model.report.Report
-import com.paway.mobileapplication.reports.domain.model.report.Transaction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
