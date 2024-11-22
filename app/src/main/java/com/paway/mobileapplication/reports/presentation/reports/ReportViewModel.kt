@@ -57,6 +57,7 @@ class ReportViewModel(private val reportRepository: ReportRepository) : ViewMode
                 // Verifica si el reporte ya existe en la lista local antes de agregarlo
                 val currentReports = _localReportFlow.value
                 if (currentReports.none { it.id == result.data.id }) {
+                    // Agrega el reporte si no existe
                     _localReportFlow.value = currentReports + result.data
                 }
             }

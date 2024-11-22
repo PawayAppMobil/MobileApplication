@@ -114,7 +114,9 @@ fun ReportScreen(viewModel: ReportViewModel, userId: String) {
             val combinedReports = when (reportState) {
                 is Resource.Success -> {
                     val fetchedReports = (reportState as Resource.Success<List<Report>>).data ?: emptyList()
-                    fetchedReports + localReports
+                    // Combina los reportes obtenidos y los locales sin duplicados
+                    val nonDuplicateReports = fetchedReports + localReports.filterNot { fetchedReports.any { remoteReport -> remoteReport.id == it.id } }
+                    nonDuplicateReports
                 }
                 else -> localReports
             }
