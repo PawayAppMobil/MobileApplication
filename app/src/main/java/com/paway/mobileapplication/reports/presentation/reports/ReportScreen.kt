@@ -34,18 +34,18 @@ import com.paway.mobileapplication.reports.presentation.reports.ReportViewModel
 
 
 @Composable
-fun ReportScreen(viewModel: ReportViewModel) {
+fun ReportScreen(viewModel: ReportViewModel, userId: String) {
+    viewModel.initialize(userId)
     val reportState by viewModel.reportFlow.collectAsState()
+    val localReports by viewModel.localReportFlow.collectAsState()
 
     var startDate by remember { mutableStateOf("") }
     var endDate by remember { mutableStateOf("") }
     var reportType by remember { mutableStateOf("") }
-
     var selectedReport by remember { mutableStateOf<Report?>(null) }
 
     if (selectedReport != null) {
-        // Mostrar ReportDetailScreen si hay un reporte seleccionado
-        ReportDetailScreen(report = selectedReport!!){
+        ReportDetailScreen(report = selectedReport!!) {
             selectedReport = null
         }
     } else {
@@ -96,7 +96,7 @@ fun ReportScreen(viewModel: ReportViewModel) {
                     Button(
                         onClick = {
                             viewModel.createReport(
-                                "12345678",
+                                userId,
                                 reportType,
                                 startDate,
                                 endDate
@@ -111,48 +111,34 @@ fun ReportScreen(viewModel: ReportViewModel) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            when (reportState) {
+            val combinedReports = when (reportState) {
                 is Resource.Success -> {
-                    val reports = (reportState as Resource.Success<List<Report>>).data
-                    if (reports.isNullOrEmpty()) {
-                        Text(
-                            text = "No hay reportes disponibles",
-                            color = MaterialTheme.colorScheme.onBackground
+                    val fetchedReports = (reportState as Resource.Success<List<Report>>).data ?: emptyList()
+                    fetchedReports + localReports
+                }
+                else -> localReports
+            }
+
+            if (combinedReports.isEmpty()) {
+                Text(
+                    text = "No hay reportes disponibles",
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            } else {
+                Text(
+                    text = "Lista de Reportes",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+                LazyColumn {
+                    items(combinedReports) { report ->
+                        ReportItem(
+                            report = report,
+                            onDelete = { reportId -> viewModel.deleteReport(userId, reportId) },
+                            onSelect = { selectedReport = it }
                         )
-                    } else {
-                        Text(
-                            text = "Lista de Reportes",
-                            style = MaterialTheme.typography.headlineSmall,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(bottom = 16.dp)
-                        )
-                        LazyColumn {
-                            items(reports) { report ->
-                                ReportItem(
-                                    report = report,
-                                    onDelete = { reportId -> viewModel.deleteReport("12345678", reportId) },
-                                    onSelect = { selectedReport = it }
-                                )
-                            }
-                        }
                     }
-                }
-
-                is Resource.Error -> {
-                    val errorMessage = (reportState as Resource.Error).message
-                    Text(
-                        text = "Error: $errorMessage",
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                }
-
-                else -> {
-                    Text(
-                        text = "Cargando datos...",
-                        color = MaterialTheme.colorScheme.onBackground,
-                        style = MaterialTheme.typography.bodyLarge
-                    )
                 }
             }
         }

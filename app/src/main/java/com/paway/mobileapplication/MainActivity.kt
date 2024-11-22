@@ -92,7 +92,7 @@ fun MainScreen(userId: String?) {
                 "home" -> HomeScreen(homeViewModel = HomeViewModel)
                 "inventory" -> InventoryScreen(userId)
                 "invoice" -> InvoiceScreen(userId)
-                "balance" -> BalanceScreen()
+                "balance" -> BalanceScreen(userId)
             }
         }
 
@@ -141,8 +141,8 @@ fun InvoiceScreen(userId: String?) {
 }
 
 @Composable
-fun BalanceScreen() {
-    ReportScreen(ReportViewModel)
+fun BalanceScreen(userId: String?) {
+    ReportScreen(ReportViewModel, userId = userId ?: "")
 }
 @Composable
 fun BottomNavigationBar(selectedScreen: String, onItemSelected: (String) -> Unit) {

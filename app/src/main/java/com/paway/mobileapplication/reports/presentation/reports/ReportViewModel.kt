@@ -17,26 +17,33 @@ class ReportViewModel(private val reportRepository: ReportRepository) : ViewMode
     private val _reportFlow = MutableStateFlow<Resource<List<Report>>>(Resource.Success(emptyList()))
     val reportFlow: StateFlow<Resource<List<Report>>> get() = _reportFlow
 
-    init {
-        fetchReports("12345678")
+    private val _localReportFlow = MutableStateFlow<List<Report>>(emptyList())
+    val localReportFlow: StateFlow<List<Report>> get() = _localReportFlow
+
+    private var userId: String = ""
+
+    fun initialize(id: String) {
+        userId = id
+        fetchReports(userId)
     }
 
     private fun fetchReports(userId: String) {
         viewModelScope.launch {
             try {
                 val result = reportRepository.getReportByUserId(userId)
-                if (result is com.paway.mobileapplication.common.Resource.Success<*> && result.data.isNullOrEmpty()) {
-                    _reportFlow.value = com.paway.mobileapplication.common.Resource.Error("Empty response from server")
+                if (result is Resource.Success && result.data != null) {
+                    _reportFlow.value = Resource.Success(result.data)
                 } else {
-                    _reportFlow.value = result as com.paway.mobileapplication.common.Resource<List<Report>>
+                    _reportFlow.value = Resource.Success(emptyList())
                 }
             } catch (e: EOFException) {
-                _reportFlow.value = com.paway.mobileapplication.common.Resource.Error("Failed to fetch reports: Empty response from server")
+                _reportFlow.value = Resource.Success(emptyList())
             } catch (e: Exception) {
-                _reportFlow.value = com.paway.mobileapplication.common.Resource.Error("Failed to fetch reports: ${e.message}")
+                _reportFlow.value = Resource.Error("Error al cargar reportes: ${e.message}")
             }
         }
     }
+
     fun createReport(userId: String, reportType: String, startDate: String, endDate: String) {
         viewModelScope.launch {
             val reportRequest = ReportRequestDto(
@@ -46,17 +53,12 @@ class ReportViewModel(private val reportRepository: ReportRepository) : ViewMode
             )
             val result = reportRepository.createReport(reportRequest)
 
-            _reportFlow.value = when (result) {
-                is Resource.Success<*> -> {
-                    val currentReports = (_reportFlow.value as? Resource.Success)?.data ?: emptyList()
-                    result.data?.let {
-                        Resource.Success(currentReports + it)
-                    } ?: Resource.Error("Error: el reporte no contiene datos.")
+            if (result is Resource.Success && result.data != null) {
+                // Verifica si el reporte ya existe en la lista local antes de agregarlo
+                val currentReports = _localReportFlow.value
+                if (currentReports.none { it.id == result.data.id }) {
+                    _localReportFlow.value = currentReports + result.data
                 }
-                is Resource.Error<*> -> Resource.Error(result.message ?: "Error desconocido")
-                //else -> Resource.Loading()
-                is com.paway.mobileapplication.common.Resource.Error -> TODO()
-                is com.paway.mobileapplication.common.Resource.Success -> TODO()
             }
         }
     }
@@ -64,14 +66,10 @@ class ReportViewModel(private val reportRepository: ReportRepository) : ViewMode
     fun deleteReport(userId: String, reportId: String) {
         viewModelScope.launch {
             val result = reportRepository.deleteReport(userId, reportId)
-            if (result is Resource.Success<*>) {
-                // Filtra el reporte eliminado de la lista
-                val updatedReports = (_reportFlow.value as? Resource.Success)?.data?.filter { it.id != reportId }
-                _reportFlow.value = Resource.Success(updatedReports ?: emptyList())
-            } else {
-                _reportFlow.value = Resource.Error("Error al eliminar el reporte.")
+            if (result is Resource.Success) {
+                val updatedReports = _localReportFlow.value.filter { it.id != reportId }
+                _localReportFlow.value = updatedReports
             }
         }
     }
-
 }

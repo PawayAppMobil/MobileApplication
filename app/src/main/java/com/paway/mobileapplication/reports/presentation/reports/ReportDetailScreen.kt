@@ -30,7 +30,6 @@ import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
-import com.paway.mobileapplication.reports.data.remote.dto.report.DateRange
 import com.paway.mobileapplication.reports.domain.model.report.Report
 import com.paway.mobileapplication.reports.domain.model.report.Transaction
 import kotlin.math.absoluteValue
