@@ -29,10 +29,11 @@ import com.paway.mobileapplication.inventory.domain.Product
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Base64
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 
-
+import androidx.compose.ui.input.pointer.pointerInput
 
 @Composable
 fun ProductListScreen(
@@ -102,14 +103,14 @@ fun ProductListScreen(
             state.data?.let { products: List<Product> ->
                 LazyColumn {
                     itemsIndexed(products) { index, product ->
-                        val backgroundColor = if (index % 2 == 0) Color(0xfffce199) else Color(0xff7faaaa)
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(4.dp)
-                                .clickable { onProductClick(product.id) }
+                                .clickable { onProductClick(product.id) },
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF839BC7))
                         ) {
-                            ProductItem(product, backgroundColor) {
+                            ProductItem(product, Color(0xFF829AC6)) {
                                 viewModel.deleteProduct(product)
                             }
                         }
@@ -131,17 +132,33 @@ fun ProductListScreen(
         }
     }
 }
+
+
 @Composable
 fun ProductItem(product: Product, backgroundColor: Color, onDeletePressed: () -> Unit) {
     val iconColor = if (product.stock < product.initialStock) Color.Yellow else Color.Green
     val imageBitmap = base64ToImageBitmap(product.image)
+    var isHovered by remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = backgroundColor),
         shape = RectangleShape
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .background(if (isHovered) Color.Red else backgroundColor)
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onPress = {
+                            isHovered = true
+                            tryAwaitRelease()
+                            isHovered = false
+                        }
+                    )
+                }
+        ) {
             IconButton(onClick = onDeletePressed) {
                 Icon(Icons.Default.Clear, contentDescription = "Delete", tint = Color.Red)
             }
@@ -168,7 +185,6 @@ fun ProductItem(product: Product, backgroundColor: Color, onDeletePressed: () ->
         }
     }
 }
-
 
 fun base64ToImageBitmap(base64: String): ImageBitmap? {
     return try {
