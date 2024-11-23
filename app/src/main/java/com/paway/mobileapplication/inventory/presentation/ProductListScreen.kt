@@ -108,9 +108,9 @@ fun ProductListScreen(
                                 .fillMaxWidth()
                                 .padding(4.dp)
                                 .clickable { onProductClick(product.id) },
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF839BC7))
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF87A1D3))
                         ) {
-                            ProductItem(product, Color(0xFF829AC6)) {
+                            ProductItem(product, Color(0xFF99D1FC)) {
                                 viewModel.deleteProduct(product)
                             }
                         }
@@ -138,27 +138,13 @@ fun ProductListScreen(
 fun ProductItem(product: Product, backgroundColor: Color, onDeletePressed: () -> Unit) {
     val iconColor = if (product.stock < product.initialStock) Color.Yellow else Color.Green
     val imageBitmap = base64ToImageBitmap(product.image)
-    var isHovered by remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = backgroundColor),
         shape = RectangleShape
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .background(if (isHovered) Color.Red else backgroundColor)
-                .pointerInput(Unit) {
-                    detectTapGestures(
-                        onPress = {
-                            isHovered = true
-                            tryAwaitRelease()
-                            isHovered = false
-                        }
-                    )
-                }
-        ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onDeletePressed) {
                 Icon(Icons.Default.Clear, contentDescription = "Delete", tint = Color.Red)
             }
@@ -185,7 +171,6 @@ fun ProductItem(product: Product, backgroundColor: Color, onDeletePressed: () ->
         }
     }
 }
-
 fun base64ToImageBitmap(base64: String): ImageBitmap? {
     return try {
         val decodedString = Base64.decode(base64, Base64.DEFAULT)
